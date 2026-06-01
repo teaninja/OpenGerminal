@@ -2,7 +2,7 @@
 
 **A commercially permissive implementation of the [Germinal](https://github.com/SantiagoMille/germinal) antibody design pipeline (VHH nanobodies and scFv).**
 
-FreeGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without licensing barriers. IgLM was already replaced by AbLang1 in Germinal commit `1e1c1a5` by the Germinal team; FreeGerminal adopts this update and sets AbLang1 as the default for all VHH configurations.
+FreeGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without software licensing barriers. IgLM was already replaced by AbLang1 in Germinal commit `1e1c1a5` by the Germinal team; FreeGerminal adopts this update and sets AbLang1 as the default for all VHH configurations.
 
 > ⚠️ **Preprint coming soon.** Code is released ahead of publication to establish priority. Please cite both FreeGerminal and the original Germinal paper (see [Citation](#citation)).
 
@@ -168,6 +168,8 @@ Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
 ## License
 
 FreeGerminal code modifications are released under the **Apache 2.0 License**.
+
+> **Note on "Free" in the name:** FreeGerminal refers specifically to the removal of commercial *software* dependencies (PyRosetta, IgLM). The name does not constitute legal advice regarding the underlying Germinal methodology, which is subject to a provisional patent application filed by Stanford University and Arc Institute. Users pursuing commercial applications are advised to independently assess the patent status of the Germinal methodology before deployment.
 
 This repository builds upon:
 - [Germinal](https://github.com/SantiagoMille/germinal) (Apache 2.0) — Mille-Fragoso et al., 2025
