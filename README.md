@@ -1,18 +1,29 @@
-# FreeGerminal
+# OpenGerminal
 
-**A commercially permissive implementation of the [Germinal](https://github.com/SantiagoMille/germinal) antibody design pipeline (VHH nanobodies and scFv).**
+**A PyRosetta-free implementation of the [Germinal](https://github.com/SantiagoMille/germinal) antibody design pipeline (VHH nanobodies and scFv).**
 
-FreeGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without software licensing barriers. IgLM was already replaced by AbLang1 in Germinal commit `1e1c1a5` by the Germinal team; FreeGerminal adopts this update and sets AbLang1 as the default for all VHH configurations.
+OpenGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without software licensing barriers. IgLM was already replaced by AbLang1 in Germinal commit `1e1c1a5` by the Germinal team; OpenGerminal adopts this update and sets AbLang1 as the default for all VHH configurations.
 
-> ⚠️ **Preprint coming soon.** Code is released ahead of publication to establish priority. Please cite both FreeGerminal and the original Germinal paper (see [Citation](#citation)).
+> ⚠️ **Patent notice:** The Germinal methodology is subject to a provisional patent
+> application filed by Stanford University and Arc Institute
+> (Mille-Fragoso et al., bioRxiv 2025). A provisional patent does not confer
+> enforceable rights, but a formal patent may be granted in the future.
+> **OpenGerminal removes software licensing barriers (PyRosetta, IgLM) only.**
+> Users intending commercial applications are solely responsible for assessing
+> compliance with any patent rights that may arise from the Germinal methodology.
+> This repository and its authors make no representations regarding the
+> patent status of the underlying design method.
+
+
+> ⚠️ **Preprint coming soon.** Code is released ahead of publication to establish priority. Please cite both OpenGerminal and the original Germinal paper (see [Citation](#citation)).
 
 ---
 
 ## What Changed
 
-| Component | Original Germinal | FreeGerminal | License |
+| Component | Original Germinal | OpenGerminal | License |
 |---|---|---|---|
-| Antibody LM (gradient) | IgLM v0.1.0 | AbLang1-heavy v0.3.1 *(updated by Germinal team, commit 1e1c1a5; adopted in FreeGerminal as default)* | Apache 2.0 |
+| Antibody LM (gradient) | IgLM v0.1.0 | AbLang1-heavy v0.3.1 *(updated by Germinal team, commit 1e1c1a5; adopted in OpenGerminal as default)* | Apache 2.0 |
 | Structure relaxation | PyRosetta FastRelax | OpenMM + FASPR | MIT / Apache 2.0 |
 | SASA calculation | PyRosetta | FreeSASA | LGPL |
 | Shape complementarity | PyRosetta | sc-rs | MIT |
@@ -21,7 +32,7 @@ FreeGerminal replaces PyRosetta — the primary commercial dependency in Germina
 | Initial & final cofolding filter | Chai-1 v0.6.1 (3 seeds / 5 seeds) | Chai-1 v0.6.1 (3 seeds / 5 seeds) | Apache 2.0 |
 | Sequence redesign | AbMPNN | AbMPNN | MIT |
 
-> **Note:** AbLang integration was implemented by the Germinal team (commit `1e1c1a5`, PR #55/#64/#68). FreeGerminal adopts this update and sets AbLang as the default for all VHH run configurations. The primary contribution of FreeGerminal is the PyRosetta replacement.
+> **Note:** AbLang integration was implemented by the Germinal team (commit `1e1c1a5`, PR #55/#64/#68). OpenGerminal adopts this update and sets AbLang as the default for all VHH run configurations. The primary contribution of OpenGerminal is the PyRosetta replacement.
 
 > **Known approximations (inherited from [FreeBindCraft](https://github.com/cytokineking/FreeBindCraft)):** `binder_score`, `interface_dG`, and `interface_hbonds` use fixed pass-through values, as these metrics depend on the Rosetta force field and have no open-source equivalent. These filters rarely reject designs in practice.
 
@@ -29,7 +40,7 @@ FreeGerminal replaces PyRosetta — the primary commercial dependency in Germina
 
 ## Pipeline Overview
 
-![FreeGerminal Pipeline](assets/freegerminal_pipeline.svg)
+![OpenGerminal Pipeline](assets/opengerminal_pipeline.svg)
 
 ---
 
@@ -49,15 +60,15 @@ FreeGerminal replaces PyRosetta — the primary commercial dependency in Germina
 
 ```bash
 # Option A: Pull from Docker Hub (coming soon)
-apptainer pull freegerminal_v1.0.0.sif docker://teaninja/freegerminal:v1.0.0
+apptainer pull opengerminal_v1.0.0.sif docker://teaninja/opengerminal:v1.0.0
 
 # Option B: Build from source
-git clone https://github.com/teaninja/FreeGerminal.git
-cd FreeGerminal
-docker build -f Dockerfile.free -t freegerminal:v1.0.0 .
-docker save freegerminal:v1.0.0 | gzip > freegerminal_docker.tar.gz
+git clone https://github.com/teaninja/OpenGerminal.git
+cd OpenGerminal
+docker build -f Dockerfile.open -t opengerminal:v1.0.0 .
+docker save opengerminal:v1.0.0 | gzip > opengerminal_docker.tar.gz
 # Convert to sif on HPC:
-apptainer build --fakeroot freegerminal_v1.0.0.sif docker-archive://freegerminal_docker.tar.gz
+apptainer build --fakeroot opengerminal_v1.0.0.sif docker-archive://opengerminal_docker.tar.gz
 ```
 
 ### 2. Download AF-Multimer parameters
@@ -91,7 +102,7 @@ mkdir -p ablang_weights
 
 ```
 /your/workdir/
-  freegerminal_v1.0.0.sif
+  opengerminal_v1.0.0.sif
   params/                    ← AF-Multimer parameters
   pdbs/
     nb.pdb                   ← VHH framework template
@@ -140,7 +151,7 @@ apptainer exec --nv \
   --bind $PWD/ablang_weights:/opt/conda/envs/germinal/lib/python3.10/site-packages/ablang2/model-weights-ablang1-heavy \
   --bind $PWD/<jobname>/<target>.yaml:/workspace/configs/target/<target>.yaml \
   --pwd /workspace \
-  freegerminal_v1.0.0.sif \
+  opengerminal_v1.0.0.sif \
   python run_germinal.py target=<target> experiment_name=<exp> structure_model=chai
 ```
 
@@ -150,7 +161,7 @@ apptainer exec --nv \
 
 Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
 
-| Metric | Original Germinal | FreeGerminal v1.0.0 |
+| Metric | Original Germinal | OpenGerminal v1.0.0 |
 |---|---|---|
 | PD-L1 accepted designs | 7 / 172 trajectories (4.1%) | 3 / 32 trajectories (9.4%) |
 | IL-3 accepted designs | 0 / 223 trajectories | 0 / 90 trajectories |
@@ -167,9 +178,32 @@ Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
 
 ## License
 
-FreeGerminal code modifications are released under the **Apache 2.0 License**.
+OpenGerminal code modifications are released under the **Apache 2.0 License**.
 
-> **Note on "Free" in the name:** FreeGerminal refers specifically to the removal of commercial *software* dependencies (PyRosetta, IgLM). The name does not constitute legal advice regarding the underlying Germinal methodology, which is subject to a provisional patent application filed by Stanford University and Arc Institute. Users pursuing commercial applications are advised to independently assess the patent status of the Germinal methodology before deployment.
+### Software dependencies
+All runtime dependencies introduced by OpenGerminal (OpenMM, FreeSASA, Biopython,
+sc-rs, FASPR) are permissively licensed (MIT / Apache 2.0 / LGPL).
+
+### Patent disclaimer
+The Germinal pipeline methodology is subject to a provisional patent application
+filed by Stanford University and Arc Institute. Provisional patents do not yet
+confer enforceable rights, but a formal patent may be granted in future.
+This notice is provided for transparency; it is not legal advice.
+**Users are solely responsible for determining whether their intended use
+requires a patent license from the relevant rights holders.**
+
+### Software dependencies
+All runtime dependencies introduced by OpenGerminal (OpenMM, FreeSASA, Biopython,
+sc-rs, FASPR) are permissively licensed (MIT / Apache 2.0 / LGPL).
+
+### Patent disclaimer
+The Germinal pipeline methodology is subject to a provisional patent application
+filed by Stanford University and Arc Institute. Provisional patents do not yet
+confer enforceable rights, but a formal patent may be granted in future.
+This notice is provided for transparency; it is not legal advice.
+**Users are solely responsible for determining whether their intended use
+requires a patent license from the relevant rights holders.**
+
 
 This repository builds upon:
 - [Germinal](https://github.com/SantiagoMille/germinal) (Apache 2.0) — Mille-Fragoso et al., 2025
@@ -182,11 +216,11 @@ This repository builds upon:
 
 ## Citation
 
-If you use FreeGerminal, please cite:
+If you use OpenGerminal, please cite:
 
 ```bibtex
-@article{freegerminal2026,
-  title   = {FreeGerminal: A Commercially Permissive Implementation of the Germinal VHH Antibody Design Pipeline},
+@article{opengerminal2026,
+  title   = {OpenGerminal: A Commercially Permissive Implementation of the Germinal VHH Antibody Design Pipeline},
   author  = {Bing Han and Anne K. Kenworthy},
   journal = {bioRxiv},
   year    = {2026},
@@ -216,4 +250,4 @@ Department of Molecular Physiology and Biological Physics, University of Virgini
 
 ## Acknowledgments
 
-FreeGerminal is built on the work of the Germinal team (Santiago Mille-Fragoso et al.) and draws on the PyRosetta-free approach pioneered by FreeBindCraft (Aaron Ring, Ariax Bio). We thank both teams for making their work open source.
+OpenGerminal is built on the work of the Germinal team (Santiago Mille-Fragoso et al.) and draws on the PyRosetta-free approach pioneered by FreeBindCraft (Aaron Ring, Ariax Bio). We thank both teams for making their work open source.

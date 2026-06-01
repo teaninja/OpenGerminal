@@ -3,7 +3,7 @@
   <rect width="920" height="760" fill="#f8f9fb"/>
 
   <!-- Title -->
-  <text x="460" y="36" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">FreeGerminal: Pipeline Architecture and Component Replacements</text>
+  <text x="460" y="36" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">OpenGerminal: Pipeline Architecture and Component Replacements</text>
 
   <!-- Column headers -->
   <rect x="30" y="48" width="375" height="36" rx="6" fill="#e8eaf6"/>
@@ -11,7 +11,7 @@
   <text x="217" y="78" text-anchor="middle" font-size="9.5" fill="#5c6bc0">commit 88d7f85 · v0.0.1 · IgLM v0.1.0 · PyRosetta 2025.39</text>
 
   <rect x="515" y="48" width="375" height="36" rx="6" fill="#e8f5e9"/>
-  <text x="702" y="63" text-anchor="middle" font-size="12" font-weight="bold" fill="#2e7d32">FreeGerminal v1.0.0</text>
+  <text x="702" y="63" text-anchor="middle" font-size="12" font-weight="bold" fill="#2e7d32">OpenGerminal v1.0.0</text>
   <text x="702" y="78" text-anchor="middle" font-size="9.5" fill="#388e3c">based on Germinal commit 1e1c1a5 · OpenMM · FreeSASA · sc-rs</text>
 
   <!-- ============================================================ -->
@@ -49,7 +49,7 @@
 
   <!-- Footnote for update -->
   <rect x="200" y="218" width="520" height="16" rx="3" fill="#fff3e0" stroke="#ffe0b2" stroke-width="0.8"/>
-  <text x="460" y="229" text-anchor="middle" font-size="8" fill="#bf360c">① AbLang integration by Germinal team (PR #55, #64, #68, commit 1e1c1a5). FreeGerminal sets ablang as pipeline default (previously iglm in vhh.yaml configs).</text>
+  <text x="460" y="229" text-anchor="middle" font-size="8" fill="#bf360c">① AbLang integration by Germinal team (PR #55, #64, #68, commit 1e1c1a5). OpenGerminal sets ablang as pipeline default (previously iglm in vhh.yaml configs).</text>
 
   <!-- PCGrad -->
   <rect x="240" y="240" width="440" height="16" rx="3" fill="#fff8e1" stroke="#ffe082" stroke-width="0.8"/>
@@ -151,15 +151,15 @@
 
   <!-- Footnotes -->
   <text x="30" y="702" font-size="8" fill="#888">† binder_score, interface_dG, and interface_hbonds use fixed pass-through values following the FreeBindCraft strategy (Ring, 2025, Apache 2.0); these filters rarely reject designs in practice.</text>
-  <text x="30" y="715" font-size="8" fill="#888">② PyRosetta replacement (OpenMM, FreeSASA, sc-rs, Biopython) is the primary contribution of FreeGerminal, adapted from FreeBindCraft (Ring, 2025).</text>
+  <text x="30" y="715" font-size="8" fill="#888">② PyRosetta replacement (OpenMM, FreeSASA, sc-rs, Biopython) is the primary contribution of OpenGerminal, adapted from FreeBindCraft (Ring, 2025).</text>
   <text x="30" y="728" font-size="8" fill="#888">sc-rs adapted from FreeBindCraft (Ring, 2025, Apache 2.0). OpenMM relaxation protocol from pr_alternative_utils.py (FreeBindCraft, Apache 2.0).</text>
-  <text x="30" y="741" font-size="8" fill="#888">① AbLang integration implemented by Germinal team (Mille-Fragoso et al., 2025, PR #55/#64/#68). FreeGerminal contribution: setting ablang as default in all VHH run configs.</text>
+  <text x="30" y="741" font-size="8" fill="#888">① AbLang integration implemented by Germinal team (Mille-Fragoso et al., 2025, PR #55/#64/#68). OpenGerminal contribution: setting ablang as default in all VHH run configs.</text>
 
   <!-- Legend -->
   <rect x="30" y="753" width="12" height="10" rx="2" fill="#f57f17"/>
   <text x="47" y="762" font-size="8" fill="#555">Updated by upstream (Germinal team)</text>
   <rect x="220" y="753" width="12" height="10" rx="2" fill="#c62828"/>
-  <text x="237" y="762" font-size="8" fill="#555">Replaced by FreeGerminal (our contribution)</text>
+  <text x="237" y="762" font-size="8" fill="#555">Replaced by OpenGerminal (our contribution)</text>
   <rect x="480" y="753" width="12" height="10" rx="2" fill="#1565c0"/>
   <text x="497" y="762" font-size="8" fill="#555">Unchanged component</text>
 
