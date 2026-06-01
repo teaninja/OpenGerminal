@@ -416,6 +416,8 @@ def hotspot_residues(
     chains = list(model.get_chains())
     if len(chains) == 2:
         binder_chain = 'B'
+    elif len(chains) >= 3:
+        binder_chain = chains[-1].id  # multi-chain target: last chain is binder
 
     # Get the specified chain
     binder_atoms = Selection.unfold_entities(structure[0][binder_chain], "A")
