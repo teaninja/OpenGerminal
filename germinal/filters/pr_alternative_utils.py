@@ -158,7 +158,30 @@ def _calculate_shape_complementarity(pdb_file_path, binder_chain="B", target_cha
             vprint(f"[SC-RS] Using binary: {sc_bin}")
 
         # sc-rs CLI: sc <pdb> <chainA> <chainB> --json; SC is symmetric, pass target first for clarity
-        cmd = [sc_bin, pdb_file_path, str(target_chain), str(binder_chain), '--json']
+        # Handle multi-chain target (e.g. "A,B") by merging chains into a temp PDB
+        sc_pdb_path = pdb_file_path
+        tmp_pdb = None
+        if ',' in str(target_chain):
+            import tempfile
+            from Bio import PDB as BioPDB
+            parser = BioPDB.PDBParser(QUIET=True)
+            structure = parser.get_structure('tmp', pdb_file_path)
+            target_chains = [c.strip() for c in str(target_chain).split(',')]
+            io_pdb = BioPDB.PDBIO()
+            class MultiChainSelect(BioPDB.Select):
+                def accept_chain(self, chain):
+                    return chain.id in target_chains + [binder_chain]
+            tmp_pdb = tempfile.NamedTemporaryFile(suffix='.pdb', delete=False)
+            io_pdb.set_structure(structure)
+            io_pdb.save(tmp_pdb.name, MultiChainSelect())
+            tmp_pdb.close()
+            sc_pdb_path = tmp_pdb.name
+            # Use first target chain for sc-rs (it handles single chain only)
+            sc_target_chain = target_chains[0]
+            vprint(f"[SC-RS] Multi-chain target {target_chain} → using chain {sc_target_chain} for sc-rs")
+        else:
+            sc_target_chain = str(target_chain)
+        cmd = [sc_bin, sc_pdb_path, sc_target_chain, str(binder_chain), '--json']
         proc = subprocess.run(
             cmd,
             check=True,
@@ -166,6 +189,14 @@ def _calculate_shape_complementarity(pdb_file_path, binder_chain="B", target_cha
             text=True,
             timeout=120,
         )
+        if tmp_pdb is not None:
+            import os as _os
+            try: _os.unlink(tmp_pdb.name)
+            except: pass
+        if tmp_pdb is not None:
+            import os as _os
+            try: _os.unlink(tmp_pdb.name)
+            except: pass
         stdout = (proc.stdout or '').strip()
         if not stdout:
             vprint(f"[SC-RS] Empty output; using placeholder 0.70 for {basename}")
