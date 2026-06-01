@@ -849,6 +849,10 @@ def calc_ss_percentage(
     plddts_interface = []
     plddts_ss = []
 
+    # Handle multi-chain target: binder is always the last chain
+    chains = list(model.get_chains())
+    if len(chains) >= 2:
+        chain_id = chains[-1].id
     # Get chain and interacting residues once
     chain = model[chain_id]
     interacting_residues = set(
