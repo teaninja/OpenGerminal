@@ -1,176 +1,376 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 780" font-family="Helvetica Neue, Arial, sans-serif">
-
-  <rect width="920" height="760" fill="#f8f9fb"/>
-
-  <!-- Title -->
-  <text x="460" y="36" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">OpenGerminal: Pipeline Architecture and Component Replacements</text>
-
-  <!-- Column headers -->
-  <rect x="30" y="48" width="375" height="36" rx="6" fill="#e8eaf6"/>
-  <text x="217" y="63" text-anchor="middle" font-size="12" font-weight="bold" fill="#3949ab">Original Germinal</text>
-  <text x="217" y="78" text-anchor="middle" font-size="9.5" fill="#5c6bc0">commit 88d7f85 · v0.0.1 · IgLM v0.1.0 · PyRosetta 2025.39</text>
-
-  <rect x="515" y="48" width="375" height="36" rx="6" fill="#e8f5e9"/>
-  <text x="702" y="63" text-anchor="middle" font-size="12" font-weight="bold" fill="#2e7d32">OpenGerminal v1.0.0</text>
-  <text x="702" y="78" text-anchor="middle" font-size="9.5" fill="#388e3c">based on Germinal commit 1e1c1a5 · OpenMM · FreeSASA · sc-rs</text>
-
-  <!-- ============================================================ -->
-  <!-- STAGE 1 -->
-  <!-- ============================================================ -->
-  <text x="460" y="104" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#555" letter-spacing="1">STAGE 1 — GRADIENT-BASED SEQUENCE DESIGN</text>
-  <line x1="80" y1="109" x2="355" y2="109" stroke="#ccc" stroke-width="0.8"/>
-  <line x1="565" y1="109" x2="840" y2="109" stroke="#ccc" stroke-width="0.8"/>
-
-  <!-- AF-Multimer -->
-  <rect x="30" y="116" width="375" height="38" rx="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.2"/>
-  <text x="217" y="131" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1565c0">AF-Multimer</text>
-  <text x="217" y="146" text-anchor="middle" font-size="9.5" fill="#1976d2">Structure prediction · pLDDT / iPTM / PAE loss</text>
-
-  <rect x="515" y="116" width="375" height="38" rx="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.2"/>
-  <text x="702" y="131" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1565c0">AF-Multimer</text>
-  <text x="702" y="146" text-anchor="middle" font-size="9.5" fill="#1976d2">Unchanged · CC BY 4.0</text>
-  <text x="460" y="140" text-anchor="middle" font-size="16" fill="#bbb">→</text>
-
-  <!-- IgLM → AbLang: UPDATED by Germinal team, NOT replaced by us -->
-  <rect x="30" y="163" width="375" height="48" rx="5" fill="#fff8e1" stroke="#ffcc02" stroke-width="1.5"/>
-  <text x="217" y="179" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#e65100">IgLM v0.1.0</text>
-  <text x="217" y="193" text-anchor="middle" font-size="9.5" fill="#e65100">Antibody language model · sequence naturalness loss</text>
-  <text x="217" y="205" text-anchor="middle" font-size="8.5" fill="#f57f17">⚠ JHU non-commercial license (code MIT; commercial use restricted)</text>
-
-  <!-- Orange "UPDATED" arrow - different from red REPLACED below -->
-  <line x1="407" y1="187" x2="513" y2="187" stroke="#f57f17" stroke-width="1.8" marker-end="url(#arrowOrange)"/>
-  <rect x="418" y="176" width="84" height="15" rx="3" fill="#f57f17"/>
-  <text x="460" y="187" text-anchor="middle" font-size="8.5" fill="white" font-weight="bold">UPDATED ①</text>
-
-  <rect x="515" y="163" width="375" height="48" rx="5" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="1.5"/>
-  <text x="702" y="179" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1b5e20">AbLang1-heavy v0.3.1</text>
-  <text x="702" y="193" text-anchor="middle" font-size="9.5" fill="#2e7d32">Antibody language model · pseudo-log-likelihood gradient</text>
-  <text x="702" y="205" text-anchor="middle" font-size="8.5" fill="#388e3c">✓ Apache 2.0 · Oxford Protein Informatics Group</text>
-
-  <!-- Footnote for update -->
-  <rect x="200" y="218" width="520" height="16" rx="3" fill="#fff3e0" stroke="#ffe0b2" stroke-width="0.8"/>
-  <text x="460" y="229" text-anchor="middle" font-size="8" fill="#bf360c">① AbLang integration by Germinal team (PR #55, #64, #68, commit 1e1c1a5). OpenGerminal sets ablang as pipeline default (previously iglm in vhh.yaml configs).</text>
-
-  <!-- PCGrad -->
-  <rect x="240" y="240" width="440" height="16" rx="3" fill="#fff8e1" stroke="#ffe082" stroke-width="0.8"/>
-  <text x="460" y="251" text-anchor="middle" font-size="8.5" fill="#f57f17">PCGrad: AF-Multimer + AbLang gradients merged at each design step → update CDR logits [L × 20]</text>
-
-  <!-- ============================================================ -->
-  <!-- STAGE 2 -->
-  <!-- ============================================================ -->
-  <text x="460" y="272" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#555" letter-spacing="1">STAGE 2 — INITIAL COFOLDING FILTER</text>
-  <line x1="80" y1="277" x2="355" y2="277" stroke="#ccc" stroke-width="0.8"/>
-  <line x1="565" y1="277" x2="840" y2="277" stroke="#ccc" stroke-width="0.8"/>
-
-  <rect x="30" y="284" width="375" height="38" rx="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.2"/>
-  <text x="217" y="299" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1565c0">Chai-1 (initial filter, 5 models)</text>
-  <text x="217" y="314" text-anchor="middle" font-size="9.5" fill="#1976d2">iPTM / pLDDT threshold · 5 models</text>
-
-  <rect x="515" y="284" width="375" height="38" rx="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.2"/>
-  <text x="702" y="299" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1565c0">Chai-1 (initial filter, 5 models)</text>
-  <text x="702" y="314" text-anchor="middle" font-size="9.5" fill="#1976d2">Unchanged · CC BY 4.0</text>
-  <text x="460" y="308" text-anchor="middle" font-size="16" fill="#bbb">→</text>
-
-  <!-- ============================================================ -->
-  <!-- STAGE 3 -->
-  <!-- ============================================================ -->
-  <text x="460" y="340" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#555" letter-spacing="1">STAGE 3 — CDR SEQUENCE REDESIGN</text>
-  <line x1="80" y1="345" x2="355" y2="345" stroke="#ccc" stroke-width="0.8"/>
-  <line x1="565" y1="345" x2="840" y2="345" stroke="#ccc" stroke-width="0.8"/>
-
-  <rect x="30" y="352" width="375" height="38" rx="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.2"/>
-  <text x="217" y="367" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1565c0">AbMPNN</text>
-  <text x="217" y="382" text-anchor="middle" font-size="9.5" fill="#1976d2">CDR residue redesign (framework &amp; interface residues fixed)</text>
-
-  <rect x="515" y="352" width="375" height="38" rx="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.2"/>
-  <text x="702" y="367" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1565c0">AbMPNN</text>
-  <text x="702" y="382" text-anchor="middle" font-size="9.5" fill="#1976d2">Unchanged · MIT</text>
-  <text x="460" y="376" text-anchor="middle" font-size="16" fill="#bbb">→</text>
-
-  <!-- ============================================================ -->
-  <!-- STAGE 4 -->
-  <!-- ============================================================ -->
-  <text x="460" y="408" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#555" letter-spacing="1">STAGE 4 — FINAL FILTER  ② OUR PRIMARY CONTRIBUTION</text>
-  <text x="460" y="418" text-anchor="middle" font-size="8" fill="#888" font-style="italic">Pipeline order: ① Chai-1 prediction (5 models) → ② Relax &amp; score → ③ AbLang PLL → filter evaluation</text>
-  <line x1="80" y1="420" x2="310" y2="420" stroke="#ccc" stroke-width="0.8"/>
-  <line x1="610" y1="420" x2="840" y2="420" stroke="#ccc" stroke-width="0.8"/>
-
-  <!-- PyRosetta block -->
-  <rect x="30" y="476" width="375" height="150" rx="5" fill="#fce4ec" stroke="#ef9a9a" stroke-width="1.5" stroke-dasharray="5,3"/>
-  <text x="217" y="493" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#c62828">PyRosetta 2025.39</text>
-  <text x="217" y="507" text-anchor="middle" font-size="8.5" fill="#e53935">⚠ Commercial license required — UW Tech Transfer Office</text>
-  <line x1="50" y1="514" x2="385" y2="514" stroke="#f8bbd0" stroke-width="0.8"/>
-  <text x="50" y="528" font-size="9.5" fill="#b71c1c">• FastRelax</text>
-  <text x="170" y="528" font-size="9" fill="#777">backbone + sidechain energy minimization</text>
-  <text x="50" y="544" font-size="9.5" fill="#b71c1c">• SASA calculation</text>
-  <text x="170" y="544" font-size="9" fill="#777">solvent accessible surface area</text>
-  <text x="50" y="560" font-size="9.5" fill="#b71c1c">• Shape complementarity</text>
-  <text x="170" y="560" font-size="9" fill="#777">interface geometric fit (sc value)</text>
-  <text x="50" y="576" font-size="9.5" fill="#b71c1c">• Interface scoring</text>
-  <text x="170" y="576" font-size="9" fill="#777">dG, SAP, hbonds via ref2015 force field</text>
-  <text x="50" y="592" font-size="9.5" fill="#b71c1c">• IgLM lm_ll</text>
-  <text x="170" y="592" font-size="9" fill="#777">final sequence naturalness scoring</text>
-
-  <!-- Red REPLACED arrow - our actual contribution -->
-  <line x1="407" y1="550" x2="513" y2="550" stroke="#c62828" stroke-width="2.2" marker-end="url(#arrowRed)"/>
-  <rect x="414" y="537" width="86" height="16" rx="3" fill="#c62828"/>
-  <text x="457" y="548" text-anchor="middle" font-size="8.5" fill="white" font-weight="bold">REPLACED ②</text>
-
-  <!-- Open-source alternatives block -->
-  <rect x="515" y="476" width="375" height="150" rx="5" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="1.5"/>
-  <text x="702" y="493" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1b5e20">Open-Source Alternatives</text>
-  <text x="702" y="507" text-anchor="middle" font-size="8.5" fill="#388e3c">✓ MIT / Apache 2.0 / LGPL — no commercial license required</text>
-  <line x1="535" y1="514" x2="870" y2="514" stroke="#c8e6c9" stroke-width="0.8"/>
-  <text x="535" y="528" font-size="9.5" fill="#1b5e20">• OpenMM + FASPR</text>
-  <text x="660" y="528" font-size="9" fill="#555">OpenMM energy minimization · FASPR sidechain repack</text>
-  <text x="535" y="544" font-size="9.5" fill="#1b5e20">• FreeSASA</text>
-  <text x="660" y="544" font-size="9" fill="#555">solvent accessible surface area</text>
-  <text x="535" y="560" font-size="9.5" fill="#1b5e20">• sc-rs (Rust)</text>
-  <text x="660" y="560" font-size="9" fill="#555">interface shape complementarity</text>
-  <text x="535" y="576" font-size="9.5" fill="#1b5e20">• Biopython NeighborSearch</text>
-  <text x="660" y="576" font-size="9" fill="#555">interface geometry, contacts, RMSD</text>
-  <text x="535" y="592" font-size="9.5" fill="#1b5e20">• Fixed pass-through values †</text>
-  <text x="660" y="592" font-size="9" fill="#555">binder_score / interface_dG / hbonds</text>
-  <text x="535" y="608" font-size="9.5" fill="#1b5e20">• AbLang1 PLL</text>
-  <text x="660" y="608" font-size="9" fill="#555">final sequence naturalness scoring</text>
-
-  <!-- Chai-1 final -->
-  <rect x="30" y="422" width="375" height="36" rx="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.2"/>
-  <text x="217" y="437" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1565c0">Chai-1 v0.6.1 (final filter, 5 models)</text>
-  <text x="217" y="452" text-anchor="middle" font-size="9.5" fill="#1976d2">sc-RMSD · iPTM · pLDDT · pAE · filter thresholds</text>
-
-  <rect x="515" y="422" width="375" height="36" rx="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.2"/>
-  <text x="702" y="437" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1565c0">Chai-1 v0.6.1 (final filter, 5 models)</text>
-  <text x="702" y="452" text-anchor="middle" font-size="9.5" fill="#1976d2">Unchanged · Apache 2.0</text>
-  <text x="460" y="440" text-anchor="middle" font-size="16" fill="#bbb">→</text>
-
-  <!-- Output -->
-  <rect x="280" y="650" width="360" height="32" rx="5" fill="#e0f2f1" stroke="#00897b" stroke-width="1.5"/>
-  <text x="460" y="665" text-anchor="middle" font-size="11" font-weight="bold" fill="#004d40">Accepted VHH Designs</text>
-  <text x="460" y="678" text-anchor="middle" font-size="9" fill="#00695c">PDB structures · sequences · interface metrics</text>
-
-  <!-- Footnotes -->
-  <text x="30" y="702" font-size="8" fill="#888">† binder_score, interface_dG, and interface_hbonds use fixed pass-through values following the FreeBindCraft strategy (Ring, 2025, Apache 2.0); these filters rarely reject designs in practice.</text>
-  <text x="30" y="715" font-size="8" fill="#888">② PyRosetta replacement (OpenMM, FreeSASA, sc-rs, Biopython) is the primary contribution of OpenGerminal, adapted from FreeBindCraft (Ring, 2025).</text>
-  <text x="30" y="728" font-size="8" fill="#888">sc-rs adapted from FreeBindCraft (Ring, 2025, Apache 2.0). OpenMM relaxation protocol from pr_alternative_utils.py (FreeBindCraft, Apache 2.0).</text>
-  <text x="30" y="741" font-size="8" fill="#888">① AbLang integration implemented by Germinal team (Mille-Fragoso et al., 2025, PR #55/#64/#68). OpenGerminal contribution: setting ablang as default in all VHH run configs.</text>
-
-  <!-- Legend -->
-  <rect x="30" y="753" width="12" height="10" rx="2" fill="#f57f17"/>
-  <text x="47" y="762" font-size="8" fill="#555">Updated by upstream (Germinal team)</text>
-  <rect x="220" y="753" width="12" height="10" rx="2" fill="#c62828"/>
-  <text x="237" y="762" font-size="8" fill="#555">Replaced by OpenGerminal (our contribution)</text>
-  <rect x="480" y="753" width="12" height="10" rx="2" fill="#1565c0"/>
-  <text x="497" y="762" font-size="8" fill="#555">Unchanged component</text>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 920 976">
+  <!-- Generator: Adobe Illustrator 29.0.1, SVG Export Plug-In . SVG Version: 2.1.0 Build 192)  -->
   <defs>
-    <marker id="arrowDown" markerWidth="8" markerHeight="8" refX="4" refY="6" orient="auto"><path d="M1,0 L4,6 L7,0" fill="none" stroke="#90caf9" stroke-width="1.5"/></marker>
-    <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#c62828"/>
-    </marker>
-    <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#f57f17"/>
-    </marker>
-  </defs>
+    <style>
+      .st0, .st1 {
+        font-family: AdobeSongStd-Light-GBpc-EUC-H, 'Adobe Song Std';
+        font-weight: 300;
+      }
 
+      .st2 {
+        stroke: #ffe082;
+      }
+
+      .st2, .st3, .st4, .st5, .st6 {
+        stroke-width: .8px;
+      }
+
+      .st2, .st7 {
+        fill: #fff8e1;
+      }
+
+      .st8, .st9, .st10, .st11, .st12, .st13, .st14, .st15, .st16, .st17, .st18, .st19, .st20, .st21, .st22, .st23, .st24, .st25, .st26, .st27, .st28, .st29, .st30, .st31, .st32, .st33, .st34, .st35, .st36, .st37, .st38, .st39, .st40, .st41, .st42, .st43, .st44 {
+        isolation: isolate;
+      }
+
+      .st8, .st12, .st13, .st15, .st16, .st19, .st21, .st45, .st25, .st27, .st29, .st31, .st35, .st37, .st38, .st39, .st40, .st42 {
+        font-family: ArialMT, Arial;
+      }
+
+      .st8, .st12, .st14, .st15, .st19, .st27, .st28, .st31, .st32, .st38 {
+        font-size: 9.5px;
+      }
+
+      .st8, .st14, .st24, .st39 {
+        fill: #e65100;
+      }
+
+      .st46, .st10, .st11, .st14, .st18, .st20, .st22, .st24, .st28, .st32, .st33, .st34, .st47, .st44, .st48 {
+        font-family: Arial-BoldMT, Arial;
+        font-weight: 700;
+      }
+
+      .st46, .st1, .st33 {
+        letter-spacing: 0em;
+      }
+
+      .st3 {
+        stroke: #c8e6c9;
+      }
+
+      .st3, .st4, .st49, .st6 {
+        fill: none;
+      }
+
+      .st50 {
+        fill: #e8eaf6;
+      }
+
+      .st51 {
+        fill: #e3f2fd;
+        stroke: #90caf9;
+      }
+
+      .st51, .st52, .st53 {
+        stroke-width: 1.2px;
+      }
+
+      .st9 {
+        fill: #bf360c;
+      }
+
+      .st9, .st21, .st23, .st40, .st43 {
+        font-size: 8px;
+      }
+
+      .st10, .st18, .st22, .st24, .st30, .st33 {
+        font-size: 10.5px;
+      }
+
+      .st10, .st54, .st32 {
+        fill: #c62828;
+      }
+
+      .st55 {
+        stroke-dasharray: 5 3;
+      }
+
+      .st55, .st56, .st7, .st57 {
+        stroke-width: 1.5px;
+      }
+
+      .st55, .st52 {
+        fill: #fce4ec;
+        stroke: #ef9a9a;
+      }
+
+      .st11 {
+        fill: #1a1a2e;
+        font-size: 15px;
+      }
+
+      .st12, .st22, .st28 {
+        fill: #1b5e20;
+      }
+
+      .st13 {
+        fill: #777;
+      }
+
+      .st13, .st16, .st25, .st29, .st35, .st39 {
+        font-size: 9px;
+      }
+
+      .st58, .st56, .st53 {
+        fill: #e8f5e9;
+      }
+
+      .st56, .st53 {
+        stroke: #a5d6a7;
+      }
+
+      .st4 {
+        stroke: #ccc;
+      }
+
+      .st15 {
+        fill: #5c6bc0;
+      }
+
+      .st16, .st27, .st34 {
+        fill: #2e7d32;
+      }
+
+      .st17, .st26, .st36, .st41, .st42 {
+        font-size: 8.5px;
+      }
+
+      .st17, .st31 {
+        fill: #388e3c;
+      }
+
+      .st59, .st41, .st42 {
+        fill: #f57f17;
+      }
+
+      .st18, .st60 {
+        fill: #1565c0;
+      }
+
+      .st7 {
+        stroke: #ffcc02;
+      }
+
+      .st19 {
+        fill: #1976d2;
+      }
+
+      .st20 {
+        fill: #004d40;
+        font-size: 11px;
+      }
+
+      .st21, .st29, .st30, .st33 {
+        fill: #555;
+      }
+
+      .st23, .st40 {
+        fill: #888;
+      }
+
+      .st25 {
+        fill: #00695c;
+      }
+
+      .st26 {
+        fill: #e53935;
+      }
+
+      .st57 {
+        fill: #e0f2f1;
+        stroke: #00897b;
+      }
+
+      .st61 {
+        fill: #f8f9fb;
+      }
+
+      .st52 {
+        stroke-dasharray: 4 2;
+      }
+
+      .st5 {
+        fill: #fff3e0;
+        stroke: #ffe0b2;
+      }
+
+      .st34, .st44 {
+        font-size: 12px;
+      }
+
+      .st35, .st38 {
+        fill: #b71c1c;
+      }
+
+      .st36, .st43 {
+        fill: #fff;
+      }
+
+      .st37 {
+        fill: #bbb;
+        font-size: 16px;
+      }
+
+      .st62 {
+        font-family: Arial-ItalicMT, Arial;
+        font-style: italic;
+      }
+
+      .st47 {
+        letter-spacing: 0em;
+      }
+
+      .st6 {
+        stroke: #f8bbd0;
+      }
+
+      .st44 {
+        fill: #3949ab;
+      }
+    </style>
+  </defs>
+  <rect class="st61" width="920" height="956"/>
+  <text class="st11" transform="translate(216.9 36)"><tspan x="0" y="0">OpenGerminal: Pipeline Architecture and Component Replacements</tspan></text>
+  <rect class="st50" x="30" y="48" width="375" height="36" rx="6" ry="6"/>
+  <text class="st44" transform="translate(166.7 63)"><tspan x="0" y="0">Original Germinal</tspan></text>
+  <text class="st15" transform="translate(92.4 78)"><tspan x="0" y="0">commit 88d7f85 · v0.0.1 · IgLM v0.1.0 · PyRosetta 2025.39</tspan></text>
+  <rect class="st58" x="515" y="48" width="375" height="36" rx="6" ry="6"/>
+  <text class="st34" transform="translate(642.3 63)"><tspan x="0" y="0">OpenGerminal v1.0.0</tspan></text>
+  <text class="st31" transform="translate(561 78)"><tspan x="0" y="0">based on Germinal commit 1e1c1a5 · OpenMM · FreeSASA · sc-rs</tspan></text>
+  <text class="st33" transform="translate(310 104)"><tspan x="0" y="0">STAGE 1 — GRADIENT-BASED SEQUENCE DESIGN</tspan></text>
+  <line class="st4" x1="80" y1="109" x2="355" y2="109"/>
+  <line class="st4" x1="565" y1="109" x2="840" y2="109"/>
+  <rect class="st51" x="30" y="116" width="375" height="38" rx="5" ry="5"/>
+  <text class="st18" transform="translate(186.4 131)"><tspan x="0" y="0">AF-Multimer</tspan></text>
+  <text class="st19" transform="translate(118.7 146)"><tspan x="0" y="0">Structure prediction · pLDDT / iPTM / PAE loss</tspan></text>
+  <rect class="st51" x="515" y="116" width="375" height="38" rx="5" ry="5"/>
+  <text class="st18" transform="translate(671.4 131)"><tspan x="0" y="0">AF-Multimer</tspan></text>
+  <text class="st19" transform="translate(651.1 146)"><tspan x="0" y="0">Unchanged · CC BY 4.0</tspan></text>
+  <text class="st37" transform="translate(452 140)"><tspan x="0" y="0">→</tspan></text>
+  <rect class="st7" x="30" y="163" width="375" height="48" rx="5" ry="5"/>
+  <text class="st24" transform="translate(188.7 179)"><tspan x="0" y="0">IgLM v0.1.0</tspan></text>
+  <text class="st8" transform="translate(102.9 193)"><tspan x="0" y="0">Antibody language model · sequence naturalness loss</tspan></text>
+  <text class="st41" transform="translate(86.5 205)"><tspan class="st0" x="0" y="0">⚠</tspan><tspan class="st45" x="8.5" y="0" xml:space="preserve"> JHU non-commercial license (code MIT; commercial use restricted)</tspan></text>
+  <path class="st49" d=""/>
+  <path class="st59" d="M502.2,181.6v10.8l14.4-5.4-14.4-5.4Z"/>
+  <path class="st59" d="M513,187" marker-end="url(#arrowOrange)"/>
+  <rect class="st59" x="418" y="176" width="84" height="15" rx="3" ry="3"/>
+  <text class="st36" transform="translate(435.4 187)"><tspan class="st48" x="0" y="0">UPDATED </tspan><tspan class="st0" x="43.4" y="0">①</tspan></text>
+  <rect class="st56" x="515" y="163" width="375" height="48" rx="5" ry="5"/>
+  <text class="st22" transform="translate(646.9 179)"><tspan x="0" y="0">AbLang1-heavy v0.3.1</tspan></text>
+  <text class="st27" transform="translate(580.8 193)"><tspan x="0" y="0">Antibody language model · pseudo-log-likelihood gradient</tspan></text>
+  <text class="st17" transform="translate(610.2 205)"><tspan class="st0" x="0" y="0">✓</tspan><tspan class="st45" x="8.5" y="0" xml:space="preserve"> Apache 2.0 · Oxford Protein Informatics Group</tspan></text>
+  <rect class="st5" x="200" y="218" width="520" height="16" rx="3" ry="3"/>
+  <text class="st9" transform="translate(173.7 229)"><tspan class="st0" x="0" y="0">①</tspan><tspan class="st45" x="8" y="0" xml:space="preserve"> AbLang integration by Germinal team (PR #55, #64, #68, commit 1e1c1a5). OpenGerminal sets ablang as pipeline default (previously iglm in vhh.yaml configs).</tspan></text>
+  <rect class="st2" x="240" y="240" width="440" height="16" rx="3" ry="3"/>
+  <text class="st42" transform="translate(271.4 251)"><tspan x="0" y="0">PCGrad: AF-Multimer + AbLang gradients merged at each design step → update CDR logits [L × 20]</tspan></text>
+  <text class="st33" transform="translate(342.1 272)"><tspan x="0" y="0">STAGE 2 — INITIAL COFOLDING FILTER</tspan></text>
+  <line class="st4" x1="80" y1="277" x2="355" y2="277"/>
+  <line class="st4" x1="565" y1="277" x2="840" y2="277"/>
+  <rect class="st51" x="30" y="284" width="375" height="38" rx="5" ry="5"/>
+  <text class="st18" transform="translate(144.1 299)"><tspan x="0" y="0">Chai-1 (initial filter, 5 models)</tspan></text>
+  <text class="st19" transform="translate(142.6 314)"><tspan x="0" y="0">iPTM / pLDDT threshold · 5 models</tspan></text>
+  <rect class="st51" x="515" y="284" width="375" height="38" rx="5" ry="5"/>
+  <text class="st18" transform="translate(629.1 299)"><tspan x="0" y="0">Chai-1 (initial filter, 5 models)</tspan></text>
+  <text class="st19" transform="translate(651.1 314)"><tspan x="0" y="0">Unchanged · CC BY 4.0</tspan></text>
+  <text class="st37" transform="translate(452 308)"><tspan x="0" y="0">→</tspan></text>
+  <rect class="st52" x="30" y="328" width="375" height="36" rx="5" ry="5"/>
+  <text class="st32" transform="translate(193.8 342)"><tspan x="0" y="0">PyRosetta</tspan></text>
+  <text class="st35" transform="translate(50 356)"><tspan x="0" y="0">• FastRelax × 5 + score_interface_ensemble</tspan></text>
+  <path class="st49" d=""/>
+  <path class="st54" d="M502.2,340.6v10.8l14.4-5.4-14.4-5.4Z"/>
+  <path class="st54" d="M513,346" marker-end="url(#arrowRed)"/>
+  <rect class="st54" x="416" y="335" width="86" height="14" rx="3" ry="3"/>
+  <text class="st43" transform="translate(432.9 345)"><tspan class="st48" x="0" y="0">REPLACED </tspan><tspan class="st0" x="46.2" y="0">②</tspan></text>
+  <rect class="st53" x="515" y="328" width="375" height="36" rx="5" ry="5"/>
+  <text class="st28" transform="translate(653.3 342)"><tspan x="0" y="0">OpenMM + FreeSASA</tspan></text>
+  <text class="st16" transform="translate(535 356)"><tspan x="0" y="0">• OpenMM relax × 5 + score_interface_ensemble</tspan></text>
+  <rect class="st7" x="30" y="370" width="375" height="38" rx="5" ry="5"/>
+  <text class="st14" transform="translate(191.4 383)"><tspan x="0" y="0">IgLM v0.1.0</tspan></text>
+  <text class="st39" transform="translate(50 392)"><tspan x="0" y="0">• lm_ll sequence naturalness re-score</tspan></text>
+  <path class="st49" d=""/>
+  <path class="st59" d="M502.2,379.6v10.8l14.4-5.4-14.4-5.4Z"/>
+  <path class="st59" d="M513,385" marker-end="url(#arrowOrange)"/>
+  <rect class="st59" x="416" y="374" width="84" height="14" rx="3" ry="3"/>
+  <text class="st43" transform="translate(434.9 384)"><tspan class="st48" x="0" y="0">UPDATED </tspan><tspan class="st0" x="40.9" y="0">①</tspan></text>
+  <rect class="st56" x="515" y="370" width="375" height="38" rx="5" ry="5"/>
+  <text class="st28" transform="translate(652.1 383)"><tspan x="0" y="0">AbLang1-heavy v0.3.1</tspan></text>
+  <text class="st16" transform="translate(535 392)"><tspan x="0" y="0">• PLL sequence naturalness re-score</tspan></text>
+  <text class="st33" transform="translate(343.1 430)"><tspan x="0" y="0">STAGE 3 — CDR SEQUENCE REDESIGN</tspan></text>
+  <line class="st4" x1="80" y1="435" x2="355" y2="435"/>
+  <line class="st4" x1="565" y1="435" x2="840" y2="435"/>
+  <rect class="st51" x="30" y="442" width="375" height="38" rx="5" ry="5"/>
+  <text class="st18" transform="translate(194.5 457)"><tspan x="0" y="0">AbMPNN</tspan></text>
+  <text class="st19" transform="translate(89 472)"><tspan x="0" y="0">CDR residue redesign (framework &amp; interface residues fixed)</tspan></text>
+  <rect class="st51" x="515" y="442" width="375" height="38" rx="5" ry="5"/>
+  <text class="st18" transform="translate(679.5 457)"><tspan x="0" y="0">AbMPNN</tspan></text>
+  <text class="st19" transform="translate(665.3 472)"><tspan x="0" y="0">Unchanged · MIT</tspan></text>
+  <text class="st37" transform="translate(452 466)"><tspan x="0" y="0">→</tspan></text>
+  <text class="st30" transform="translate(284.9 498)"><tspan class="st46" x="0" y="0">STAGE 4 — FINAL FILTER </tspan><tspan class="st1" x="157.7" y="0">②</tspan><tspan class="st47" x="169.2" y="0" xml:space="preserve"> OUR PRIMARY CONTRIBUTION</tspan></text>
+  <text class="st23" transform="translate(278.2 508)"><tspan class="st62" x="0" y="0">Pipeline order: </tspan><tspan class="st0" x="53.8" y="0">①</tspan><tspan class="st62" x="61.8" y="0" xml:space="preserve"> Chai-1 prediction (5 models) → </tspan><tspan class="st0" x="177" y="0">②</tspan><tspan class="st62" x="185" y="0" xml:space="preserve"> Relax &amp; score → </tspan><tspan class="st0" x="249.4" y="0">③</tspan><tspan class="st62" x="257.4" y="0" xml:space="preserve"> AbLang PLL → filter evaluation</tspan></text>
+  <line class="st4" x1="80" y1="511.5" x2="310" y2="511.5"/>
+  <line class="st4" x1="610" y1="511.5" x2="840" y2="511.5"/>
+  <path class="st51" d="M35,515.5h365c2.8,0,5,1.6,5,3.6v30.6c0,2-2.2,3.6-5,3.6H35c-2.8,0-5-1.6-5-3.6v-30.6c0-2,2.2-3.6,5-3.6Z"/>
+  <text class="st18" transform="translate(130.9 531.5)"><tspan x="0" y="0">Chai-1 v0.6.1 (final filter, 5 models)</tspan></text>
+  <text class="st19" transform="translate(112.6 545.5)"><tspan x="0" y="0">sc-RMSD · iPTM · pLDDT · pAE · filter thresholds</tspan></text>
+  <path class="st51" d="M520,515.5h365c2.8,0,5,1.6,5,3.6v30.6c0,2-2.2,3.6-5,3.6h-365c-2.8,0-5-1.6-5-3.6v-30.6c0-2,2.2-3.6,5-3.6Z"/>
+  <text class="st18" transform="translate(615.9 531.5)"><tspan x="0" y="0">Chai-1 v0.6.1 (final filter, 5 models)</tspan></text>
+  <text class="st19" transform="translate(649.7 545.5)"><tspan x="0" y="0">Unchanged · Apache 2.0</tspan></text>
+  <text class="st37" transform="translate(452 540)"><tspan x="0" y="0">→</tspan></text>
+  <path class="st55" d="M35,561h365c2.8,0,5,2,5,4.4v123.6c0,2.4-2.2,4.4-5,4.4H35c-2.8,0-5-2-5-4.4v-123.6c0-2.4,2.2-4.4,5-4.4Z"/>
+  <text class="st10" transform="translate(170.9 578)"><tspan x="0" y="0">PyRosetta 2025.39</tspan></text>
+  <text class="st26" transform="translate(106 592)"><tspan class="st0" x="0" y="0">⚠</tspan><tspan class="st45" x="8.5" y="0" xml:space="preserve"> Commercial license required — UW Tech Transfer Office</tspan></text>
+  <line class="st6" x1="50" y1="599" x2="385" y2="599"/>
+  <text class="st38" transform="translate(50 613)"><tspan x="0" y="0">• FastRelax</tspan></text>
+  <text class="st13" transform="translate(170 613)"><tspan x="0" y="0">backbone + sidechain energy minimization</tspan></text>
+  <text class="st38" transform="translate(50 629)"><tspan x="0" y="0">• SASA calculation</tspan></text>
+  <text class="st13" transform="translate(170 629)"><tspan x="0" y="0">solvent accessible surface area</tspan></text>
+  <text class="st38" transform="translate(50 645)"><tspan x="0" y="0">• Shape complementarity</tspan></text>
+  <text class="st13" transform="translate(170 645)"><tspan x="0" y="0">interface geometric fit (sc value)</tspan></text>
+  <text class="st38" transform="translate(50 661)"><tspan x="0" y="0">• Interface scoring</tspan></text>
+  <text class="st13" transform="translate(170 661)"><tspan x="0" y="0">dG, SAP, hbonds via ref2015 force field</tspan></text>
+  <path class="st49" d=""/>
+  <path class="st54" d="M499.8,628.4v13.2l17.6-6.6-17.6-6.6Z"/>
+  <path class="st54" d="M513,635" marker-end="url(#arrowRed)"/>
+  <rect class="st54" x="414" y="622" width="86" height="16" rx="3" ry="3"/>
+  <text class="st36" transform="translate(429.3 633)"><tspan class="st48" x="0" y="0">REPLACED </tspan><tspan class="st0" x="49.1" y="0">②</tspan></text>
+  <path class="st56" d="M520,561h365c2.8,0,5,2,5,4.4v123.6c0,2.4-2.2,4.4-5,4.4h-365c-2.8,0-5-2-5-4.4v-123.6c0-2.4,2.2-4.4,5-4.4Z"/>
+  <text class="st22" transform="translate(637.7 578)"><tspan x="0" y="0">Open-Source Alternatives</tspan></text>
+  <text class="st17" transform="translate(585.9 592)"><tspan class="st0" x="0" y="0">✓</tspan><tspan class="st45" x="8.5" y="0" xml:space="preserve"> MIT / Apache 2.0 / LGPL — no commercial license required</tspan></text>
+  <line class="st3" x1="535" y1="599" x2="870" y2="599"/>
+  <text class="st12" transform="translate(535 613)"><tspan x="0" y="0">• OpenMM + FASPR</tspan></text>
+  <text class="st29" transform="translate(660 613)"><tspan x="0" y="0">OpenMM energy minimization · FASPR sidechain repack</tspan></text>
+  <text class="st12" transform="translate(535 629)"><tspan x="0" y="0">• FreeSASA</tspan></text>
+  <text class="st29" transform="translate(660 629)"><tspan x="0" y="0">solvent accessible surface area</tspan></text>
+  <text class="st12" transform="translate(535 645)"><tspan x="0" y="0">• sc-rs (Rust)</tspan></text>
+  <text class="st29" transform="translate(660 645)"><tspan x="0" y="0">interface shape complementarity</tspan></text>
+  <text class="st12" transform="translate(535 661)"><tspan x="0" y="0">• Biopython NeighborSearch</tspan></text>
+  <text class="st29" transform="translate(660 661)"><tspan x="0" y="0">interface geometry, contacts, RMSD</tspan></text>
+  <text class="st12" transform="translate(535 677)"><tspan x="0" y="0">• Fixed pass-through values †</tspan></text>
+  <text class="st29" transform="translate(660 677)"><tspan x="0" y="0">binder_score / interface_dG / hbonds</tspan></text>
+  <rect class="st7" x="30" y="702.5" width="375" height="30" rx="5" ry="5"/>
+  <text class="st14" transform="translate(191.4 715.5)"><tspan x="0" y="0">IgLM v0.1.0</tspan></text>
+  <text class="st39" transform="translate(50 727.5)"><tspan x="0" y="0">• lm_ll final sequence naturalness scoring</tspan></text>
+  <path class="st49" d=""/>
+  <path class="st59" d="M502.2,712.1v10.8l14.4-5.4-14.4-5.4Z"/>
+  <path class="st59" d="M513,717.5" marker-end="url(#arrowOrange)"/>
+  <rect class="st59" x="416" y="706.5" width="84" height="14" rx="3" ry="3"/>
+  <text class="st43" transform="translate(434.9 716.5)"><tspan class="st48" x="0" y="0">UPDATED </tspan><tspan class="st0" x="40.9" y="0">①</tspan></text>
+  <rect class="st56" x="515" y="702.5" width="375" height="30" rx="5" ry="5"/>
+  <text class="st28" transform="translate(652.1 715.5)"><tspan x="0" y="0">AbLang1-heavy v0.3.1</tspan></text>
+  <text class="st16" transform="translate(535 727.5)"><tspan x="0" y="0">• PLL final sequence naturalness scoring</tspan></text>
+  <rect class="st57" x="280" y="743.5" width="360" height="32" rx="5" ry="5"/>
+  <text class="st20" transform="translate(399.2 758.5)"><tspan x="0" y="0">Accepted VHH Designs</tspan></text>
+  <text class="st25" transform="translate(367 771.5)"><tspan x="0" y="0">PDB structures · sequences · interface metrics</tspan></text>
+  <text class="st40" transform="translate(30 790)"><tspan x="0" y="0">† binder_score, interface_dG, and interface_hbonds use fixed pass-through values following the FreeBindCraft strategy (Ring, 2025, Apache 2.0); these filters rarely reject designs in practice.</tspan></text>
+  <text class="st23" transform="translate(30 803)"><tspan class="st0" x="0" y="0">②</tspan><tspan class="st45" x="8" y="0" xml:space="preserve"> PyRosetta replacement (OpenMM, FreeSASA, sc-rs, Biopython) is the primary contribution of OpenGerminal, adapted from FreeBindCraft (Ring, 2025).</tspan></text>
+  <text class="st40" transform="translate(30 816)"><tspan x="0" y="0">sc-rs adapted from FreeBindCraft (Ring, 2025, Apache 2.0). OpenMM relaxation protocol from pr_alternative_utils.py (FreeBindCraft, Apache 2.0).</tspan></text>
+  <text class="st23" transform="translate(30 829)"><tspan class="st0" x="0" y="0">①</tspan><tspan class="st45" x="8" y="0" xml:space="preserve"> AbLang integration implemented by Germinal team (Mille-Fragoso et al., 2025, PR #55/#64/#68). OpenGerminal contribution: setting ablang as default in all VHH run configs.</tspan></text>
+  <rect class="st59" x="30" y="841" width="12" height="10" rx="2" ry="2"/>
+  <text class="st21" transform="translate(47 850)"><tspan x="0" y="0">Updated by upstream (Germinal team)</tspan></text>
+  <rect class="st54" x="220" y="841" width="12" height="10" rx="2" ry="2"/>
+  <text class="st21" transform="translate(237 850)"><tspan x="0" y="0">Replaced by OpenGerminal (our contribution)</tspan></text>
+  <rect class="st60" x="480" y="841" width="12" height="10" rx="2" ry="2"/>
+  <text class="st21" transform="translate(497 850)"><tspan x="0" y="0">Unchanged component</tspan></text>
 </svg>
