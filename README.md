@@ -29,7 +29,7 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 | Shape complementarity | PyRosetta | sc-rs | MIT |
 | Interface geometry | PyRosetta | Biopython | MIT |
 | Gradient-based design | AF-Multimer | AF-Multimer | CC BY 4.0 |
-| Initial & final cofolding filter | Chai-1 v0.6.1 (3 seeds / 5 seeds) | Chai-1 v0.6.1 (3 seeds / 5 seeds) | Apache 2.0 |
+| Initial & final cofolding filter | Chai-1 v0.6.1 (1 model) | Chai-1 v0.6.1 (1 model) | Apache 2.0 |
 | Sequence redesign | AbMPNN | AbMPNN | MIT |
 
 > **Note:** AbLang integration was implemented by the Germinal team (commit `1e1c1a5`, PR #55/#64/#68). OpenGerminal adopts this update and sets AbLang as the default for all VHH run configurations. The primary contribution of OpenGerminal is the PyRosetta replacement.
