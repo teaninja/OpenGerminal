@@ -23,7 +23,7 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 
 | Component | Original Germinal | OpenGerminal | License |
 |---|---|---|---|
-| Antibody LM (gradient) | IgLM v0.1.0 | AbLang1-heavy v0.3.1 *(updated by Germinal team, commit 1e1c1a5; adopted in OpenGerminal as default)* | Apache 2.0 |
+| Antibody LM (gradient) | IgLM v0.1.0 | ablang2 v0.2.1 (loads AbLang1-heavy weights) *(updated by Germinal team, commit 1e1c1a5; adopted in OpenGerminal as default)* | Apache 2.0 |
 | Structure relaxation | PyRosetta FastRelax | OpenMM + FASPR | MIT / Apache 2.0 |
 | SASA calculation | PyRosetta | FreeSASA | LGPL |
 | Shape complementarity | PyRosetta | sc-rs | MIT |
@@ -60,15 +60,15 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 
 ```bash
 # Option A: Pull from Docker Hub (coming soon)
-apptainer pull opengerminal_v1.0.0.sif docker://teaninja/opengerminal:v1.0.0
+apptainer pull opengerminal_v0.1.1.sif docker://teaninja/opengerminal:v0.1.1
 
 # Option B: Build from source
 git clone https://github.com/teaninja/OpenGerminal.git
 cd OpenGerminal
-docker build -f Dockerfile.open -t opengerminal:v1.0.0 .
-docker save opengerminal:v1.0.0 | gzip > opengerminal_docker.tar.gz
+docker build -f Dockerfile.open -t opengerminal:v0.1.1 .
+docker save opengerminal:v0.1.1 | gzip > opengerminal_docker.tar.gz
 # Convert to sif on HPC:
-apptainer build --fakeroot opengerminal_v1.0.0.sif docker-archive://opengerminal_docker.tar.gz
+apptainer build --fakeroot opengerminal_v0.1.1.sif docker-archive://opengerminal_docker.tar.gz
 ```
 
 ### 2. Download AF-Multimer parameters
@@ -102,7 +102,7 @@ mkdir -p ablang_weights
 
 ```
 /your/workdir/
-  opengerminal_v1.0.0.sif
+  opengerminal_v0.1.1.sif
   params/                    ← AF-Multimer parameters
   pdbs/
     nb.pdb                   ← VHH framework template
@@ -151,7 +151,7 @@ apptainer exec --nv \
   --bind $PWD/ablang_weights:/opt/conda/envs/germinal/lib/python3.10/site-packages/ablang2/model-weights-ablang1-heavy \
   --bind $PWD/<jobname>/<target>.yaml:/workspace/configs/target/<target>.yaml \
   --pwd /workspace \
-  opengerminal_v1.0.0.sif \
+  opengerminal_v0.1.1.sif \
   python run_germinal.py target=<target> experiment_name=<exp> structure_model=chai
 ```
 
@@ -161,11 +161,13 @@ apptainer exec --nv \
 
 Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
 
-| Metric | Original Germinal | OpenGerminal v1.0.0 |
+| Metric | Original Germinal | OpenGerminal v0.1.1 |
 |---|---|---|
-| PD-L1 accepted designs | 7 / 172 trajectories (4.1%) | 3 / 32 trajectories (9.4%) |
-| IL-3 accepted designs | 0 / 223 trajectories | 0 / 90 trajectories |
-| Avg. time per trajectory | ~167 sec | ~258 sec |
+| PD-L1 accepted designs (seeds) | 7 seeds / 274 trajectories (2.6%) | 9 seeds / 499 trajectories (1.8%) |
+| PD-L1 accepted structures | 16 PDB structures | 18 PDB structures |
+| PD-L1 cofolding entry rate | 18.6% | 33.7% |
+| IL-3 accepted designs | 0 / 376 trajectories | 0 / 729 trajectories |
+| Avg. time per trajectory (Stage 1) | ~180 sec (3.0 min) | ~258 sec (4.3 min) |
 | PyRosetta required | ✅ Yes | ❌ No |
 | IgLM required | ✅ Yes | ❌ No |
 | Commercial use | ⚠️ License required | ✅ Free |
