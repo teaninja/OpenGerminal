@@ -396,9 +396,13 @@ def _compute_sasa_metrics_with_freesasa(pdb_file_path, binder_chain="B", target_
         target_sasa_in_complex = 0.0
         try:
             # FreeSASA Python API expects a list of selection definition strings: "name, selector"
+            # FreeSASA selection syntax does not support "chain A,B";
+            # use "chain A or chain B" for multi-chain targets
+            target_chains = [c.strip() for c in str(target_chain).split(',')]
+            target_sel = ' or '.join(f'chain {c}' for c in target_chains)
             selection_defs = [
                 f"binder, chain {str(binder_chain)}",
-                f"target, chain {str(target_chain)}",
+                f"target, {target_sel}",
             ]
             sel_area = freesasa.selectArea(selection_defs, structure_complex, result_complex)  # type: ignore[name-defined]
             # sel_area is a dict-like mapping from selection name to area
