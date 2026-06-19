@@ -341,19 +341,20 @@ def create_starting_structure(
     # Add chain A from first structure
     chainA = structure1[0][target_chain[0]]
     model.add(chainA)
-    # Add chain from second structure as chain B
+    # Add remaining target chains before binder to avoid chain ID collision
+    for chain_id in target_chain[1:]:
+        chain = structure1[0][chain_id]
+        chain.id = chain_id
+        model.add(chain)
+    # Add binder chain last, renamed to binder_chain
     chainB = structure2[0][start_binder_chain]
-    chainB.id = binder_chain  # Rename the chain to B
+    chainB.id = binder_chain  # Rename the chain to binder_chain
 
     offset = np.array([30.0, 30.0, 0.0])  # move binder +30 Å along X
     for atom in chainB.get_atoms():
         atom.set_coord(atom.coord + offset)
 
     model.add(chainB)
-    for chain_id in target_chain[1:]:
-        chain = structure1[0][chain_id]
-        chain.id = chain_id
-        model.add(chain)
     # Save the combined structure
     io = PDB.PDBIO()
     io.set_structure(combined)

@@ -43,7 +43,7 @@ RUN PYG_URL="https://data.pyg.org/whl/torch-2.6.0%2Bcu124.html" && \
 RUN uv pip install --system ablang && \
     uv pip install --system ablang2==0.2.1 --no-deps && \
     uv pip install --system rotary_embedding_torch==0.8.9 --no-deps && \
-    uv pip install --system iglm chai-lab==0.6.1
+    uv pip install --system chai-lab==0.6.1
 
 RUN uv pip install --system jax==0.5.3 && \
     uv pip install --system hydra-core omegaconf && \
