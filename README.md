@@ -1,6 +1,8 @@
 # OpenGerminal
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![DOI (code)](https://img.shields.io/badge/DOI%20(code)-10.5281%2Fzenodo.20755400-blue)](https://doi.org/10.5281/zenodo.20755400)
+[![DOI (container)](https://img.shields.io/badge/DOI%20(container)-10.5281%2Fzenodo.20756013-blue)](https://doi.org/10.5281/zenodo.20756013)
 
 **A PyRosetta-free implementation of the [Germinal](https://github.com/SantiagoMille/germinal) antibody design pipeline (VHH nanobodies and scFv).**
 
@@ -60,8 +62,9 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 ### 1. Download the container
 
 ```bash
-# Option A: Pull from Docker Hub (coming soon)
-apptainer pull opengerminal_v1.0.0.sif docker://teaninja/opengerminal:v1.0.0
+# Option A: Download pre-built container (recommended)
+# Download opengerminal_v1.0.0.sif (6.1 GB) from Zenodo:
+# https://doi.org/10.5281/zenodo.20756013
 
 # Option B: Build from source
 git clone https://github.com/teaninja/OpenGerminal.git
