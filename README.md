@@ -179,7 +179,7 @@ Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
 
 > **For full methods, benchmark details, and analysis, see the accompanying paper (preprint coming soon).**
 
-> Per-trajectory runtime (Stage 1, hallucination only) is slower for OpenGerminal on both targets: 43% for PD-L1 (180s vs 258s) and 62% for IL-3 (156s vs 252s). Stage 1 does not invoke OpenMM relaxation — relaxation only occurs in Stages 2 and 4 (cofolding filters). Since Stage 1 uses the same AF-Multimer model in both versions (verified by identical checksums of the core model code), we attribute the slowdown to the AbLang1 gradient steps replacing IgLM, not the relaxation backend. Note: trajectory counts are limited in the current benchmark; additional runs are ongoing and this table will be updated.
+> Per-trajectory runtime (Stage 1, hallucination only) is slower for OpenGerminal on both targets: 43% for PD-L1 (180s vs 258s) and 62% for IL-3 (156s vs 252s). Stage 1 does not invoke OpenMM relaxation — relaxation only occurs in Stages 2 and 4 (cofolding filters). Since Stage 1 uses the same AF-Multimer model in both versions (verified by identical checksums of the core model code), we attribute the slowdown to the AbLang1 gradient steps replacing IgLM, not the relaxation backend.
 
 > "Accepted designs (seeds)" counts only designs whose originating trajectory has a complete log record, matching the rate reported in the manuscript (Section 3.3). For PD-L1, the original Germinal pipeline produced 7 accepted seeds (16 PDB structures) in total — of which 3 are traceable to a logged trajectory; all 9 OpenGerminal accepted seeds are log-traceable. Design-quality metrics for all accepted designs (independent of log traceability) are evaluated in the accompanying paper.
 
