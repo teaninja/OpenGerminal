@@ -6,7 +6,7 @@
 
 **A PyRosetta-free implementation of the [Germinal](https://github.com/SantiagoMille/germinal) antibody design pipeline (VHH nanobodies and scFv).**
 
-OpenGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without software licensing barriers. IgLM was already replaced by AbLang1 in Germinal commit `1e1c1a5` by the Germinal team; OpenGerminal adopts this update and sets AbLang1 as the default for all VHH configurations.
+OpenGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without software licensing barriers. The Germinal team added AbLang1 as a non-default alternative language model option in commit `1e1c1a5` (PR #55), but IgLM remained the default and no comparative data were reported; OpenGerminal adopts AbLang1 as the sole language model for all VHH configurations, removing IgLM entirely.
 
 > ⚠️ **Patent notice:** The Germinal methodology is subject to a provisional patent
 > application filed by Stanford University and Arc Institute
@@ -35,9 +35,9 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 | Initial & final cofolding filter | Chai-1 v0.6.1 (1 model) | Chai-1 v0.6.1 (1 model) | Apache 2.0 |
 | Sequence redesign | AbMPNN | AbMPNN | MIT |
 
-> **Note:** AbLang integration was implemented by the Germinal team (commit `1e1c1a5`, PR #55/#64/#68). OpenGerminal adopts this update and sets AbLang as the default for all VHH run configurations. The primary contribution of OpenGerminal is the PyRosetta replacement.
+> **Note:** AbLang1 was added to Germinal as a non-default alternative language model by the Germinal team (commit `1e1c1a5`, PR #55/#64/#68); IgLM remained the default and no comparative benchmarking was reported. OpenGerminal adopts AbLang1 as the sole language model, removing IgLM as a selectable option, and provides the first systematic benchmarking of the two models within this architecture.
 
-> **Known approximations (inherited from [FreeBindCraft](https://github.com/cytokineking/FreeBindCraft)):** `binder_score`, `interface_dG`, and `interface_hbonds` use fixed pass-through values, as these metrics depend on the Rosetta force field and have no open-source equivalent. These filters rarely reject designs in practice.
+> **Known approximations (inherited from [FreeBindCraft](https://github.com/cytokineking/FreeBindCraft)):** `binder_score`, `interface_dG`, and `interface_hbonds` use fixed pass-through values, as these metrics depend on the Rosetta force field and have no open-source equivalent. `binder_score` and `interface_dG` are recorded for reference only and are not applied as filter thresholds; `interface_hbonds` is used as a Stage 4 filter threshold, but the fixed value always passes it, effectively disabling this filter. `binder_score` is also used by the Stage 2 ensemble-selection logic, which is degraded as a result (all candidates appear identical, so the first is always selected rather than the energetically optimal one); practical impact is expected to be limited.
 
 ---
 
@@ -240,10 +240,11 @@ Please also cite the original Germinal paper:
 
 ```bibtex
 @article{germinal2025,
-  title   = {Germinal: De novo VHH antibody design with a language model-guided diffusion framework},
+  title   = {Efficient generation of epitope-targeted de novo antibodies with Germinal},
   author  = {Mille-Fragoso, Santiago and others},
   journal = {bioRxiv},
-  year    = {2025}
+  year    = {2025},
+  doi     = {10.1101/2025.09.19.677421}
 }
 ```
 
