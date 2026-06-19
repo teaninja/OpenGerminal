@@ -1,5 +1,7 @@
 # OpenGerminal
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 **A PyRosetta-free implementation of the [Germinal](https://github.com/SantiagoMille/germinal) antibody design pipeline (VHH nanobodies and scFv).**
 
 OpenGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without software licensing barriers. IgLM was already replaced by AbLang1 in Germinal commit `1e1c1a5` by the Germinal team; OpenGerminal adopts this update and sets AbLang1 as the default for all VHH configurations.
@@ -13,7 +15,6 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 > compliance with any patent rights that may arise from the Germinal methodology.
 > This repository and its authors make no representations regarding the
 > patent status of the underlying design method.
-
 
 > ⚠️ **Preprint coming soon.** Code is released ahead of publication to establish priority. Please cite both OpenGerminal and the original Germinal paper (see [Citation](#citation)).
 
@@ -180,32 +181,31 @@ Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
 
 ## License
 
-OpenGerminal code modifications are released under the **Apache 2.0 License**.
+© 2026 by the Rector and Visitors of the University of Virginia. All rights reserved.
+
+OpenGerminal code modifications are released under the **Apache 2.0 License**. See [LICENSE](LICENSE) for full text.
 
 ### Software dependencies
-All runtime dependencies introduced by OpenGerminal (OpenMM, FreeSASA, Biopython,
-sc-rs, FASPR) are permissively licensed (MIT / Apache 2.0 / LGPL).
+
+The open-source components introduced in this work are distributed under the following licenses:
+
+| Component | License |
+|---|---|
+| OpenMM 8.5.1 | MIT License |
+| FASPR | Apache 2.0 License |
+| FreeSASA | LGPL v2.1 |
+| sc-rs v1.0.0 | MIT License |
+| Biopython | Biopython License Agreement (BSD-like) |
+| ablang2 v0.2.1 | Apache 2.0 License |
 
 ### Patent disclaimer
+
 The Germinal pipeline methodology is subject to a provisional patent application
 filed by Stanford University and Arc Institute. Provisional patents do not yet
 confer enforceable rights, but a formal patent may be granted in future.
 This notice is provided for transparency; it is not legal advice.
 **Users are solely responsible for determining whether their intended use
 requires a patent license from the relevant rights holders.**
-
-### Software dependencies
-All runtime dependencies introduced by OpenGerminal (OpenMM, FreeSASA, Biopython,
-sc-rs, FASPR) are permissively licensed (MIT / Apache 2.0 / LGPL).
-
-### Patent disclaimer
-The Germinal pipeline methodology is subject to a provisional patent application
-filed by Stanford University and Arc Institute. Provisional patents do not yet
-confer enforceable rights, but a formal patent may be granted in future.
-This notice is provided for transparency; it is not legal advice.
-**Users are solely responsible for determining whether their intended use
-requires a patent license from the relevant rights holders.**
-
 
 This repository builds upon:
 - [Germinal](https://github.com/SantiagoMille/germinal) (Apache 2.0) — Mille-Fragoso et al., 2025
@@ -222,8 +222,8 @@ If you use OpenGerminal, please cite:
 
 ```bibtex
 @article{opengerminal2026,
-  title   = {OpenGerminal: A Commercially Permissive Implementation of the Germinal VHH Antibody Design Pipeline},
-  author  = {Bing Han and Anne K. Kenworthy},
+  title   = {OpenGerminal: An Open-Source Implementation of the Germinal Antibody Design Pipeline},
+  author  = {Bing Han and Sheng Li},
   journal = {bioRxiv},
   year    = {2026},
   note    = {Preprint}
@@ -247,6 +247,8 @@ Please also cite the original Germinal paper:
 
 Department of Molecular Physiology and Biological Physics, University of Virginia School of Medicine  
 [Kenworthy Lab](https://med.virginia.edu/kenworthy-lab/)
+
+*This work was conducted as part of research activities in the Kenworthy Lab.*
 
 ---
 
