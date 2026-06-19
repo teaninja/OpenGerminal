@@ -66,7 +66,7 @@ apptainer pull opengerminal_v1.0.0.sif docker://teaninja/opengerminal:v1.0.0
 # Option B: Build from source
 git clone https://github.com/teaninja/OpenGerminal.git
 cd OpenGerminal
-docker build -f Dockerfile.open -t opengerminal:v1.0.0 .
+docker build -f Dockerfile.free -t opengerminal:v1.0.0 .
 docker save opengerminal:v1.0.0 | gzip > opengerminal_docker.tar.gz
 # Convert to sif on HPC:
 apptainer build --fakeroot opengerminal_v1.0.0.sif docker-archive://opengerminal_docker.tar.gz
