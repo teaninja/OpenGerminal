@@ -167,18 +167,21 @@ Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
 
 | Metric | Original Germinal | OpenGerminal v1.0.0 |
 |---|---|---|
-| PD-L1 accepted designs (seeds) | 7 seeds / 274 trajectories (2.6%) | 9 seeds / 499 trajectories (1.8%) |
-| PD-L1 accepted structures | 16 PDB structures | 18 PDB structures |
-| PD-L1 cofolding entry rate | 18.6% | 33.7% |
-| IL-3 accepted designs | 0 / 376 trajectories | 0 / 729 trajectories |
-| Avg. time per trajectory (Stage 1) | ~180 sec (3.0 min) | ~258 sec (4.3 min) |
+| PD-L1 accepted designs (seeds) | 3 seeds / 274 trajectories (1.1%) | 9 seeds / 499 trajectories (1.8%) |
+| PD-L1 cofolding entry rate | 51 / 274 (18.6%) | 168 / 499 (33.7%) |
+| PD-L1 avg. time per trajectory (Stage 1) | 180 sec (3.0 min) | 258 sec (4.3 min) |
+| IL-3 accepted designs (seeds) | 0 / 376 trajectories (0%) | 0 / 729 trajectories (0%) |
+| IL-3 cofolding entry rate | 30 / 376 (8.0%) | 179 / 729 (24.6%) |
+| IL-3 avg. time per trajectory (Stage 1) | 156 sec (2.6 min) | 252 sec (4.2 min) |
 | PyRosetta required | ✅ Yes | ❌ No |
 | IgLM required | ✅ Yes | ❌ No |
 | Commercial use | ⚠️ License required | ✅ Free |
 
 > **For full methods, benchmark details, and analysis, see the accompanying paper (preprint coming soon).**
 
-> Per-trajectory runtime (Stage 1, hallucination only) is ~43% slower on average (180s vs 258s). Stage 1 does not invoke OpenMM relaxation — relaxation only occurs in Stages 2 and 4 (cofolding filters). Since Stage 1 uses the same AF-Multimer model in both versions (verified by identical checksums of the core model code), we attribute the slowdown to the AbLang1 gradient steps replacing IgLM, not the relaxation backend. Note: trajectory counts are limited in the current benchmark; additional runs are ongoing and this table will be updated.
+> Per-trajectory runtime (Stage 1, hallucination only) is slower for OpenGerminal on both targets: 43% for PD-L1 (180s vs 258s) and 62% for IL-3 (156s vs 252s). Stage 1 does not invoke OpenMM relaxation — relaxation only occurs in Stages 2 and 4 (cofolding filters). Since Stage 1 uses the same AF-Multimer model in both versions (verified by identical checksums of the core model code), we attribute the slowdown to the AbLang1 gradient steps replacing IgLM, not the relaxation backend. Note: trajectory counts are limited in the current benchmark; additional runs are ongoing and this table will be updated.
+
+> "Accepted designs (seeds)" counts only designs whose originating trajectory has a complete log record, matching the rate reported in the manuscript (Section 3.3). For PD-L1, the original Germinal pipeline produced 7 accepted seeds (16 PDB structures) in total — of which 3 are traceable to a logged trajectory; all 9 OpenGerminal accepted seeds are log-traceable. Design-quality metrics for all accepted designs (independent of log traceability) are evaluated in the accompanying paper.
 
 ---
 
