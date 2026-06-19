@@ -178,7 +178,7 @@ Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
 
 > **For full methods, benchmark details, and analysis, see the accompanying paper (preprint coming soon).**
 
-> Per-trajectory runtime is ~56% slower on average (166s vs 258s; all targets combined). This reflects the OpenMM relaxation step replacing PyRosetta FastRelax. Note: trajectory counts are limited in the current benchmark; additional runs are ongoing and this table will be updated.
+> Per-trajectory runtime (Stage 1, hallucination only) is ~43% slower on average (180s vs 258s). Stage 1 does not invoke OpenMM relaxation — relaxation only occurs in Stages 2 and 4 (cofolding filters). Since Stage 1 uses the same AF-Multimer model in both versions (verified by identical checksums of the core model code), we attribute the slowdown to the AbLang1 gradient steps replacing IgLM, not the relaxation backend. Note: trajectory counts are limited in the current benchmark; additional runs are ongoing and this table will be updated.
 
 ---
 
