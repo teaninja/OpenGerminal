@@ -1,6 +1,7 @@
 # OpenGerminal
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![bioRxiv](https://img.shields.io/badge/bioRxiv-2026.06.25.734527-b31b1b)](https://doi.org/10.64898/2026.06.25.734527)
 [![DOI (code)](https://img.shields.io/badge/DOI%20(code)-10.5281%2Fzenodo.20755400-blue)](https://doi.org/10.5281/zenodo.20755400)
 [![DOI (container)](https://img.shields.io/badge/DOI%20(container)-10.5281%2Fzenodo.20756013-blue)](https://doi.org/10.5281/zenodo.20756013)
 
@@ -18,7 +19,7 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 > This repository and its authors make no representations regarding the
 > patent status of the underlying design method.
 
-> ⚠️ **Preprint coming soon.** Code is released ahead of publication to establish priority. Please cite both OpenGerminal and the original Germinal paper (see [Citation](#citation)).
+> 📄 **Preprint:** Han & Li (2026). *OpenGerminal: an open-source implementation of the Germinal antibody design pipeline.* bioRxiv. https://doi.org/10.64898/2026.06.25.734527
 
 ---
 
@@ -228,11 +229,12 @@ If you use OpenGerminal, please cite:
 
 ```bibtex
 @article{opengerminal2026,
-  title   = {OpenGerminal: An Open-Source Implementation of the Germinal Antibody Design Pipeline},
-  author  = {Bing Han and Sheng Li},
+  title   = {OpenGerminal: an open-source implementation of the Germinal antibody design pipeline},
+  author  = {Han, Bing and Li, Sheng},
   journal = {bioRxiv},
   year    = {2026},
-  note    = {Preprint}
+  doi     = {10.64898/2026.06.25.734527},
+  url     = {https://doi.org/10.64898/2026.06.25.734527}
 }
 ```
 
