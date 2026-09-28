@@ -419,36 +419,84 @@ def unaligned_rmsd(reference_pdb, align_pdb, reference_chain_id, align_chain_id)
 
 
 def find_nearby_residues_from_pdb(
-    pdb_path, target_residue_numbers, distance_threshold=8.0, chain="A"
+    pdb_path, target_residues, distance_threshold=6.0, chain="A"
 ):
     """
     Replace PyRosetta find_nearby_residues_from_pdb.
 
-    Returns residue numbers on chains other than `chain` that are within
-    distance_threshold Angstroms of any atom in the specified target residues.
+    Returns chain-relative positions within `chain` (1-based, counting only
+    standard residues of that chain) whose CA atom lies within
+    distance_threshold Angstroms of the CA atom of any target residue. The
+    target residues themselves are included, and a residue may appear more
+    than once when it is near several targets; both match the PyRosetta
+    implementation this replaces, and the only consumer performs membership
+    tests, so neither matters downstream.
+
+    target_residues are chain-relative positions of that same chain, as
+    produced by utils.idx_from_ranges(...) + 1.
+
+    This namespace is not incidental. The result is consumed by
+    is_binder_near_hotspot as the `target_hotspots` argument and compared
+    against target-chain contact residue numbers from get_residue_contacts,
+    which are chain-relative for both implementations. Returning residues of
+    any other chain produces a membership test between two unrelated numbering
+    schemes; because the ranges overlap it does not raise, it just silently
+    filters on nothing.
+
+    Unlike a PyRosetta pose, a PDB file can carry residues with no CA atom.
+    A target residue without a CA is an error -- the hotspot cannot be placed
+    -- while a non-target residue without a CA is simply skipped, since it
+    cannot be shown to be within the threshold.
     """
     parser = PDBParser(QUIET=True)
     structure = parser.get_structure("s", pdb_path)
     model = next(structure.get_models())
 
-    target_atoms = []
-    if chain in model:
-        for res in model[chain]:
-            if res.id[0] != " ":
+    if chain not in model:
+        raise ValueError(
+            "Chain %s not found in %s. Available chains: %s"
+            % (chain, pdb_path, [c.id for c in model])
+        )
+
+    residues = [r for r in model[chain] if r.id[0] == " "]
+    n_residues = len(residues)
+    if n_residues == 0:
+        raise ValueError("Chain %s of %s has no standard residues" % (chain, pdb_path))
+
+    if isinstance(target_residues, (int, np.integer)):
+        target_residues = [target_residues]
+    target_residues = [int(t) for t in target_residues]
+
+    for t in target_residues:
+        if t < 1 or t > n_residues:
+            raise ValueError(
+                "Invalid residue number %d for chain %s. Chain has %d residues."
+                % (t, chain, n_residues)
+            )
+
+    ca_coords = []
+    for residue in residues:
+        ca_coords.append(residue["CA"].get_coord() if "CA" in residue else None)
+
+    nearby = []
+    for t in target_residues:
+        target_ca = ca_coords[t - 1]
+        if target_ca is None:
+            raise ValueError(
+                "Target residue %d of chain %s has no CA atom; the hotspot "
+                "cannot be located." % (t, chain)
+            )
+        for position in range(1, n_residues + 1):
+            if position == t:
+                nearby.append(position)
                 continue
-            if res.id[1] in target_residue_numbers or res.id[1] - 1 in target_residue_numbers:
-                target_atoms.extend(res.get_atoms())
+            coord = ca_coords[position - 1]
+            if coord is None:
+                continue
+            if float(np.linalg.norm(coord - target_ca)) <= distance_threshold:
+                nearby.append(position)
 
-    if not target_atoms:
-        return set()
-
-    ns = NeighborSearch(list(structure.get_atoms()))
-    nearby = set()
-    for atom in target_atoms:
-        for hit in ns.search(atom.get_vector().get_array(), distance_threshold, level="R"):
-            if hit.get_parent().id != chain:
-                nearby.add(hit.id[1])
-    return nearby
+    return np.array(nearby)
 
 
 def get_residue_contacts(pdb_path, chain1="A", chain2="B", cutoff_distance=4.0):
