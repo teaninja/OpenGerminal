@@ -350,6 +350,20 @@ class TimeBudget:
                     n_observed=len(self._durations),
                     deadline_source=self.deadline_source)
 
+    def params(self) -> dict:
+        """The settings this guard is deciding with, for the manifest.
+
+        These have to be archived with the run. The guard decides where a job stops,
+        so "which settings produced this pause" is part of the run's provenance; a
+        paused state file whose thresholds are unknown cannot be interpreted later.
+        """
+        return dict(margin_s=self.margin_s,
+                    safety_factor=self.safety_factor,
+                    quantile=self.quantile,
+                    default_estimate_s=self.default_estimate_s,
+                    deadline_epoch=self.deadline_epoch,
+                    deadline_source=self.deadline_source)
+
 
 # ----------------------------------------------------------------------------------
 # Per-trajectory handle
@@ -718,7 +732,18 @@ class RunRecorder:
                 "prior_counters": self._prior["counters"],
                 "malformed_lines_in_prior_logs": self._prior["malformed_lines"],
             },
-            "time_budget": (self.budget.check() if self.budget else None),
+            # Two different things, both needed. `params` is what the guard will decide
+            # with for the whole job; `at_start` is the decision it would have made at
+            # t=0 with no observed durations yet. Only the first explains a later pause.
+            #
+            # This used to be a single key holding `check()` alone, and an attempt to
+            # add a second "time_budget" key earlier in this same dict literal was
+            # silently discarded -- duplicate keys in a dict literal are legal Python
+            # and the last one wins, with no error. Caught by test_ogr1_trace.py S3.
+            "time_budget": {
+                "params": self.budget.params() if self.budget is not None else None,
+                "at_start": self.budget.check() if self.budget is not None else None,
+            },
         }
         self._atomic_json(self.manifest_path, man)
         self._emit({"event": "run_start",

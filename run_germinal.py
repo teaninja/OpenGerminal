@@ -86,7 +86,19 @@ def main(cfg: DictConfig):
                 "pregenerate_seeds": run_settings["pregenerate_seeds"],
                 "max_trajectories": run_settings["max_trajectories"],
             },
-            budget=TimeBudget(),
+            # The guard decides where a job stops, so its thresholds belong to
+            # the run and are written into run_manifest.json. They are read from
+            # the environment because the right values depend on how long a
+            # trajectory takes on the cluster in question, and because the
+            # interesting path -- run N trajectories, then stop cleanly at a seed
+            # boundary -- is only reachable in a test if they can be set. With the
+            # defaults, the first check alone demands 2 h 22 min of remaining wall
+            # clock, so a short job can only ever exercise "refuse immediately".
+            budget=TimeBudget(
+                margin_s=float(os.environ.get("OGR1_MARGIN_S", 1800)),
+                default_estimate_s=float(
+                    os.environ.get("OGR1_DEFAULT_ESTIMATE_S", 5400)),
+            ),
         )
         rec.write_manifest()
         rec.start_heartbeat()
