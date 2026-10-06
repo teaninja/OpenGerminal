@@ -11,7 +11,6 @@ import torch
 import torch.nn.functional as F
 import ablang2
 from ablang2.models.ablang2.vocab import ablang_vocab
-from iglm import IgLM
 from colabdesign.ablang.model import CustomAbLang
 from germinal.utils import utils
 from germinal.filters import chai, protenix, pDockQ
@@ -811,6 +810,11 @@ def get_iglm_ll(
     Returns:
         float: Log-likelihood score (higher = more natural)
     """
+    # Imported here rather than at module scope so that the release
+    # container, which does not install iglm, can still import this
+    # module. Only the benchmark image for the IgLM reference arm has the
+    # package, and only this function needs it.
+    from iglm import IgLM
 
     # Initialize the model
     model = IgLM()

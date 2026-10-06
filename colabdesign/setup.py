@@ -10,6 +10,6 @@ setup(
                       'chex','dm-haiku','dm-tree',
                       'immutabledict','jax','ml-collections',
                       'numpy','pandas','scipy','optax','joblib',
-                      'matplotlib', 'iglm'],
+                      'matplotlib'],
     include_package_data=True
 )
