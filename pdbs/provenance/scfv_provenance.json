@@ -1,0 +1,28 @@
+{
+  "output": "/scratch/bh7bu/opengerminal_r1/env/rebuilt_inputs/scfv.pdb",
+  "name": "scfv",
+  "source_of_sequence": {
+    "file": "/workspace/pdbs/scfv.pdb",
+    "chain": "A"
+  },
+  "n_residues": 242,
+  "method": "chai-1 prediction",
+  "chai_parameters": {
+    "num_trunk_recycles": 3,
+    "num_diffn_timesteps": 200,
+    "use_esm_embeddings": true,
+    "use_msa_server": false,
+    "use_templates_server": false,
+    "seed": 1
+  },
+  "model_selection": "highest aggregate_score",
+  "aggregate_scores": [
+    0.17229518294334412,
+    0.17243607342243195,
+    0.172598734498024,
+    0.17246805131435394,
+    0.1724739968776703
+  ],
+  "selected_model_index": 2,
+  "renumbered": "1..N, chain A"
+}

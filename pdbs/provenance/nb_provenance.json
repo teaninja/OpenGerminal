@@ -1,0 +1,28 @@
+{
+  "output": "/scratch/bh7bu/opengerminal_r1/env/rebuilt_inputs/nb.pdb",
+  "name": "nb",
+  "source_of_sequence": {
+    "file": "/workspace/pdbs/nb.pdb",
+    "chain": "A"
+  },
+  "n_residues": 131,
+  "method": "chai-1 prediction",
+  "chai_parameters": {
+    "num_trunk_recycles": 3,
+    "num_diffn_timesteps": 200,
+    "use_esm_embeddings": true,
+    "use_msa_server": false,
+    "use_templates_server": false,
+    "seed": 1
+  },
+  "model_selection": "highest aggregate_score",
+  "aggregate_scores": [
+    0.18404094874858856,
+    0.184041827917099,
+    0.1841111034154892,
+    0.18409784138202667,
+    0.18403439223766327
+  ],
+  "selected_model_index": 2,
+  "renumbered": "1..N, chain A"
+}
