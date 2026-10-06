@@ -61,9 +61,11 @@ def pr_relax(pdb_file, relaxed_pdb_path):
     solvent, ramped backbone restraints, and optional FASPR side-chain
     repacking. Typically 2-4x faster than Rosetta FastRelax.
 
-    On HPC (A100): set use_gpu_relax=True.
-    On local Blackwell GPUs: falls back to CPU due to PTX version mismatch;
-    results are identical, only speed differs.
+    Both openmm_relax calls below pin use_gpu_relax=False, so this function
+    always minimizes on the CPU; pr_relax itself exposes no such parameter, and
+    turning the GPU path on means editing those two call sites. On local
+    Blackwell GPUs the GPU path falls back to the CPU anyway because of a PTX
+    version mismatch; results are identical, only speed differs.
     """
     if os.path.exists(relaxed_pdb_path):
         return
