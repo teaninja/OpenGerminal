@@ -175,9 +175,19 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     uv pip install --system "pyrosetta==${PYROSETTA_VERSION}" \
         --find-links https://west.rosettacommons.org/pyrosetta/quarterly/release
 
-    python -c "import pyrosetta; print('pyrosetta', pyrosetta.__version__)"
-    python -c "import pyrosetta, sys; v=pyrosetta.__version__; \
-        sys.exit(0) if '2026.3' in v else (print('FAIL: unexpected pyrosetta', v) or sys.exit(1))"
+    # The pinned version is checked against the INSTALLED DISTRIBUTION METADATA,
+    # not against a module attribute. An earlier draft of this file asserted on
+    # pyrosetta.__version__, which does not exist; the build therefore failed
+    # with AttributeError after the 1.5 GiB download had already completed.
+    # importlib.metadata reports exactly the string pip resolved, which is the
+    # thing being pinned, and it does not depend on PyRosetta's internal API.
+    #
+    # The glob anchors at the start, which is stricter than a substring test:
+    # '2026.3' in v would also accept a hypothetical 2026.31 release.
+    python -c "import pyrosetta; print('pyrosetta importable')"
+    PYROSETTA_INSTALLED=$(python -c "import importlib.metadata as m; print(m.version('pyrosetta'))")
+    echo "pyrosetta ${PYROSETTA_INSTALLED}"
+    case "${PYROSETTA_INSTALLED}" in 2026.3+*) echo "pyrosetta version OK" ;; *) echo "FAIL: unexpected pyrosetta ${PYROSETTA_INSTALLED}"; exit 1 ;; esac
 
     # -----------------------------------------------------------------------
     # Upstream source at 1e1c1a5, unmodified
