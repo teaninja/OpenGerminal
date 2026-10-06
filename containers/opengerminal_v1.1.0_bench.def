@@ -53,10 +53,36 @@ From: opengerminal_v1.1.0.sif
 
     # The only change from the release image. Pulls transformers as well.
     uv pip install --system iglm
+    # IgLM 0.1.0 builds its tokenizer with BertTokenizerFast(vocab_file=...),
+    # a constructor path that transformers 5.x no longer honours: the
+    # tokenizer then comes up with the 5 BERT special tokens instead of the
+    # 32 in the package's own vocab.txt, and every starting token is
+    # unknown. Measured: arms A and C died at IgLM.py:151 on the first
+    # trajectory to reach cofolding, in every attempt, under both 5.9.0 and
+    # 5.18.0. iglm declares only transformers>=4.6.1, so nothing in the
+    # dependency graph prevents this; the pin has to be explicit.
+    uv pip install --system 'transformers==4.57.6' 'tokenizers==0.22.2'
 
     echo "=== verifying bench invariants ==="
 
     python -c "import iglm" || { echo "FAIL: iglm not importable in the bench image"; exit 1; }
+    # An assertion that only checks importability is worthless here: the bench
+    # image passed `import iglm` while its tokenizer was loading 5 tokens
+    # instead of 33, and arm C died on the first trajectory that reached
+    # cofolding. Load the tokenizer and score a sequence instead.
+    python - <<'IGLMCHECK'
+from iglm import IgLM
+m = IgLM()
+v = m.tokenizer.get_vocab()
+assert len(v) >= 32, "IgLM tokenizer vocabulary is %d, expected >= 32" % len(v)
+for t in ("[HEAVY]", "[LIGHT]", "[CAMEL]", "[HUMAN]"):
+    assert t in v, "IgLM tokenizer is missing %s" % t
+s = ("QVQLQESGGGLVQAGGSLRLSCAASGRTFSSYAMGWFRQAPGKEREFVAAISWSGGSTYYADSVKG"
+     "RFTISRDNAKNTVYLQMNSLKPEDTAVYYCAAGSTWYLDRYEYDYWGQGTQVTVSSRGR")
+ll = float(m.log_likelihood(s, "[HEAVY]", "[CAMEL]"))
+assert ll < 0.0, "IgLM log_likelihood returned %r" % ll
+print("iglm tokenizer OK: vocab %d, log_likelihood %.4f" % (len(v), ll))
+IGLMCHECK
 
     # The mirror of the release assertion, and the reason it is worth the line:
     # colabdesign/af/prep.py imports CustomIgLM inside a try/except and leaves

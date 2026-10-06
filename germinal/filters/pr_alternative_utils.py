@@ -842,7 +842,12 @@ def _add_hydrogens_and_minimize(pdb_in_path, pdb_out_path, platform_order=None,
         props = {}
         sim = None
         if platform_order is None:
-            platform_order = ['OpenCL', 'CUDA', 'CPU']
+            # CPU by default. A GPU platform has to be requested
+            # explicitly: on the benchmark cluster the CUDA module
+            # fails to load with CUDA_ERROR_UNSUPPORTED_PTX_VERSION
+            # once JAX and torch have already initialised the device,
+            # and the caller of this helper does not always know.
+            platform_order = ['CPU']
         for p_name in platform_order:
             try:
                 platform_obj = Platform.getPlatformByName(p_name)
@@ -1408,7 +1413,10 @@ def openmm_relax(pdb_file_path, output_pdb_path, use_gpu_relax=True,
                     if post_faspr_minimize:
                         _, post_min_seconds = _add_hydrogens_and_minimize(
                             tmp_faspr_out, output_pdb_path,
-                            platform_order=['OpenCL', 'CUDA', 'CPU'],
+                            platform_order=(
+                                ['OpenCL', 'CUDA', 'CPU']
+                                if use_gpu_relax else ['CPU']
+                            ),
                             force_tolerance_kj_mol_nm=openmm_final_force_tolerance_kj_mol_nm,
                             max_iterations=300
                         )
