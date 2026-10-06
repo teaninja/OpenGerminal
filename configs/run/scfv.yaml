@@ -5,7 +5,7 @@
 type: "scfv"
 cdr_lengths: [8, 8, 13, 6, 6, 9] # heavy, then light
 fw_lengths: [25,17,38,52,17,33,10]
-pregenerate_seeds: false
+pregenerate_seeds: true
 vh_first: true
 vh_len: 120
 vl_len: 108
@@ -61,7 +61,7 @@ model_path: "abmpnn"
 mpnn_weights: "abmpnn"
 
 # Structure prediction settings
-structure_model: "af3"
+structure_model: "chai"   # or "protenix"; AF3 support was removed in v1.1.0
 af3_structure_select_mode: "worst"  # or "best"
 msa_mode: "target"
 

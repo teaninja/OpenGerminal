@@ -5,7 +5,7 @@
 type: "nb"
 cdr_lengths: [11, 8, 18]
 fw_lengths: [25,17,38,14]
-pregenerate_seeds: false
+pregenerate_seeds: true
 vh_first: null # not needed for nanobodies
 vh_len: null # not needed for nanobodies  
 vl_len: null # not needed for nanobodies
@@ -60,7 +60,7 @@ model_path: "abmpnn"
 mpnn_weights: "abmpnn"
 
 # Structure prediction settings
-structure_model: "protenix"        # or "af3" or "chai"
+structure_model: "chai"   # or "protenix"; AF3 support was removed in v1.1.0
 msa_mode: "target"
 af3_structure_select_mode: "worst"
 
