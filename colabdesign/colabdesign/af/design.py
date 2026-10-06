@@ -1,7 +1,6 @@
 import jax
 import jax.numpy as jnp
 import numpy as np
-from cvxopt import matrix, solvers
 
 from colabdesign.af.alphafold.common import residue_constants
 from colabdesign.shared.utils import copy_dict, update_dict, Key, dict_to_str, to_float, softmax, categorical, to_list, copy_missing
@@ -58,6 +57,10 @@ def mgda(grad_list, epsilon=1e-8):
         np.ndarray: Optimal task weights (sum to 1, all >= 0).
         np.ndarray: Combined gradient vector.
     """
+    # cvxopt is GPL-3.0-or-later and this is its only user. Imported here so
+    # that a build without cvxopt still imports this module (mgda is never
+    # reached: grad_merge_method falls back to pcgrad).
+    from cvxopt import matrix, solvers
     T = len(grad_list)
     grads = [g.reshape(-1, 1) for g in grad_list]
     

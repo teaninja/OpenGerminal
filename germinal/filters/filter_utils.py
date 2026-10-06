@@ -14,7 +14,7 @@ from ablang2.models.ablang2.vocab import ablang_vocab
 from iglm import IgLM
 from colabdesign.ablang.model import CustomAbLang
 from germinal.utils import utils
-from germinal.filters import af3, chai, protenix, pDockQ
+from germinal.filters import chai, protenix, pDockQ
 try:
     from germinal.filters import pyrosetta_free_utils as pyrosetta_utils
     print("[filter_utils] Using PyRosetta-free backend (OpenMM + Biopython)")
@@ -613,20 +613,7 @@ def run_structure_prediction(
     """
     af3_seed = [int(x) for x in np.random.randint(0, 999999, size=af3_seed_size)]
     ipsae = None
-    if run_settings["structure_model"] == "af3":
-        external_pdb, external_metrics, ipsae = af3.run_af3(
-            trajectory_sequence,
-            target_sequence,
-            target_chain,
-            structures_directory,
-            design_name,
-            af3_seed,
-            run_settings,
-            binder_chain=binder_chain,
-            msa_mode=run_settings["msa_mode"],
-            select_mode=select_mode,
-        )
-    elif run_settings["structure_model"] == "chai":
+    if run_settings["structure_model"] == "chai":
 
         # Use h3_positions computed by run_filters (PR #67 3-way branch
         # correctly handles nb / VH-first scFv / VL-first scFv). The old
@@ -670,7 +657,7 @@ def run_structure_prediction(
         )
     else:
         raise ValueError(
-            f"Structure model {run_settings['structure_model']} not supported, select either af3, chai, or protenix"
+            f"Structure model {run_settings['structure_model']} not supported, select either chai or protenix"
         )
 
     return external_pdb, external_metrics, ipsae
