@@ -215,8 +215,17 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     # -----------------------------------------------------------------------
     # OpenGerminal source (git tag v1.1.0)
     # -----------------------------------------------------------------------
+    # The staging path is /opt and NOT /tmp. Apptainer mounts the host /tmp over
+    # the container's /tmp while %post runs, which hides anything %files put
+    # there; the symptom is "cp: cannot stat '/tmp/.../.'" after every package
+    # has already been installed. Checked explicitly rather than relying on cp
+    # to fail, because a silent staging failure is how a build recipe ends up
+    # describing an image it did not produce.
+    test -d /opt/germinal_src || { echo "FAIL: %files did not deliver /opt/germinal_src"; exit 1; }
+    test -f /opt/germinal_src/run_germinal.py || { echo "FAIL: /opt/germinal_src is not the source tree"; exit 1; }
+
     mkdir -p /workspace
-    cp -r /tmp/germinal_src/. /workspace/
+    cp -r /opt/germinal_src/. /workspace/
     cd /workspace
     uv pip install --system -e /workspace/colabdesign
     uv pip install --system -e .
@@ -262,12 +271,17 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     # -----------------------------------------------------------------------
     micromamba clean -a -y
     pip cache purge 2>/dev/null || true
-    rm -rf /tmp/germinal_src
+    rm -rf /opt/germinal_src
 
 %files
     # v1.1.0 source tree only. params_from_sif.tar is deliberately NOT
     # included — AF-Multimer parameters are supplied at runtime (see %help).
-    germinal_src /tmp/germinal_src
+    #
+    # Staged under /opt, not /tmp: the host /tmp is mounted over the container's
+    # /tmp during %post, so a file staged at /tmp/... is not there when %post
+    # tries to read it. The source path is relative to the directory the build
+    # is invoked from, so build from the directory that contains germinal_src/.
+    germinal_src /opt/germinal_src
 
 %runscript
     exec python /workspace/run_germinal.py "$@"
