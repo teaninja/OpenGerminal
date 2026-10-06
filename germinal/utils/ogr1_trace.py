@@ -692,6 +692,16 @@ class RunRecorder:
             os.fsync(f.fileno())
         os.replace(tmp, path)      # atomic; never leaves a half-written file
 
+    def _container_block(self) -> dict:
+        path = self._meta["container_path"]
+        declared = os.environ.get("OGR1_CONTAINER_SHA256") or None
+        if declared:
+            return {"path": path, "sha256": declared,
+                    "sha256_source": "OGR1_CONTAINER_SHA256"}
+        digest = _sha256(path) if path else None
+        return {"path": path, "sha256": digest,
+                "sha256_source": "hashed_at_runtime" if digest else "unavailable"}
+
     def write_manifest(self):
         m = self._meta
         man = {
@@ -701,10 +711,13 @@ class RunRecorder:
             "arm": m["arm"], "target": m["target"],
             "language_model": m["language_model"],
             "scoring_backend": m["scoring_backend"],
-            "container": {
-                "path": m["container_path"],
-                "sha256": _sha256(m["container_path"]) if m["container_path"] else None,
-            },
+            # The container's own host path is not visible from inside the container, so
+            # hashing it here returns None -- silently losing the single most important
+            # provenance field. The launching script has already computed and verified
+            # the digest, so it is passed in through OGR1_CONTAINER_SHA256 and preferred;
+            # hashing is the fallback for a run started outside a container. Which of the
+            # two was used is recorded, so the value is never of unknown origin.
+            "container": self._container_block(),
             "source": {"git_tag": m["git_tag"], "git_commit": m["git_commit"]},
             "config": {
                 "resolved_path": m["config_path"],
