@@ -1,0 +1,332 @@
+# opengerminal_v1.1.0.def  —  RELEASE build (no IgLM, no GPL, no AF3)
+# ===========================================================================
+# Apptainer definition for OpenGerminal v1.1.0.
+# Derived from germinal_free.def (v1.0.0) with the changes listed below.
+# Each change is annotated with the reviewer item it addresses.
+#
+# CHANGES FROM v1.0.0  (see CHANGELOG for full text)
+#
+#   [R2-1]  The IgLM PACKAGE is absent from the release build, and the code
+#           path that would use it is unreachable. Three changes were needed:
+#             - `iglm` dropped from the pip install line;
+#             - `from iglm import IgLM` in germinal/filters/filter_utils.py was
+#               at module scope, so v1.0.0 could not import its own scoring
+#               module without the package. It now lives in get_iglm_ll();
+#             - `iglm` dropped from colabdesign/setup.py install_requires,
+#               which would otherwise reinstall it during the editable install
+#               however carefully this file avoids naming it. That line is the
+#               literal source of Reviewer 2's first point.
+#           colabdesign/colabdesign/iglm/ is deliberately KEPT in the source
+#           tree: opengerminal_v1.1.0_bench.def bootstraps from this image and
+#           adds the package back for the IgLM reference arm, so the code has
+#           to be present even though it is inert without it. "Removed"
+#           therefore means absent and unreachable, not stripped from source —
+#           and that is what the build assertions below check.
+#
+#   [R3-1]  germinal/filters/af3.py DELETED from the source tree, and the
+#           `af3` import removed from filters/filter_utils.py.
+#           Rationale: af3.py carries a CC-BY-NC-SA 4.0 header plus the
+#           AlphaFold 3 Model Parameters Terms of Use, i.e. non-commercial
+#           terms travelled with the file inside a container we describe as
+#           permitting unrestricted commercial use. `colabfold` is dropped
+#           with it (it was imported only by af3.py) — this also removes the
+#           undisclosed call to the public ColabFold MMseqs2 server.
+#           NOTE: pdbfixer is installed independently via micromamba below,
+#           so dropping colabfold does not break the open-source scoring path.
+#
+#   [R1-9]  cvxopt (GPL-3.0-or-later) removed.
+#           It was inherited verbatim from the upstream Dockerfile and used
+#           only by mgda() in colabdesign/af/design.py. The manuscript states
+#           the method is PCGrad (Section 2.1); mgda() is unreachable under
+#           every shipped and default configuration. The import is made lazy
+#           in the source tree so the function still works if a user installs
+#           cvxopt themselves.
+#           MDAnalysis (GPL) also removed — zero imports; it pulled in
+#           GridDataFormats (LGPLv3), which disappears with it.
+#
+#   [R1-9]  params/DAlphaBall.gcc DELETED from the source tree.
+#           Rosetta-lineage binary (from BindCraft) with no licence file,
+#           used only on the PyRosetta code path, which is guarded by
+#           `if pr is not None` and never taken because PyRosetta is absent.
+#
+#   [AE-5]  params_from_sif.tar no longer copied in. AlphaFold-Multimer
+#   [R1-m3] parameters are supplied at runtime by bind mount (see %help).
+#           This makes "we do not redistribute the AF2 parameters" a
+#           structural property of the image rather than an accident, and
+#           removes the CC BY 4.0 redistribution obligation.
+#
+#   [AE-5]  Shipped run configs now default to structure_model: "chai",
+#   [R1-11] matching the configuration actually used for every benchmark in
+#           the paper. Configs are the six as-run final_config.yaml files.
+#
+#   [R1-M10] The v1.0.0 image contained two source edits that appear in no
+#           commit at all (a multi-chain interface string and a leftover
+#           "DEBUG chain_map keys" print, both in filters/pyrosetta_utils.py;
+#           `git log -S` finds neither anywhere in the history). They are not
+#           carried forward: that module requires PyRosetta, which this image
+#           does not install, so neither edit was ever reachable and no
+#           published number depends on either. Because this image is built
+#           from a tagged commit rather than from a hand-edited sandbox, the
+#           source tree and the image now agree file by file -- which is the
+#           actual remedy for R1 major 10 and 11.
+#           (The two multi-chain fixes that WERE needed, in utils/utils.py and
+#           pr_alternative_utils.py, had already been committed upstream of
+#           this work in 70456fc and 860a520.)
+#
+# Build on HPC login node:
+#   module load apptainer
+#   apptainer build --fakeroot opengerminal_v1.1.0.sif opengerminal_v1.1.0.def
+#
+# Required in the same directory as this .def file:
+#   germinal_src/      the v1.1.0 source tree (git tag v1.1.0)
+# ===========================================================================
+
+Bootstrap: docker
+From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+
+%labels
+    maintainer teaninja
+    version 1.1.0
+    description "OpenGerminal - PyRosetta-free Germinal pipeline (release build)"
+    base_image nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+    contains_iglm false
+    contains_pyrosetta false
+    contains_af3_module false
+    contains_gpl_components false
+    contains_af2_parameters false
+
+%environment
+    export MAMBA_ROOT_PREFIX=/opt/conda
+    export MAMBA_NO_BANNER=1
+    export CONDA_ENV=germinal
+    export PATH=/opt/conda/envs/germinal/bin:${PATH}
+    export PYTHONUNBUFFERED=1
+    export MPLBACKEND=Agg
+    export HYDRA_FULL_ERROR=1
+    export PIP_NO_CACHE_DIR=1
+
+%post
+    # -----------------------------------------------------------------------
+    # System packages
+    # -----------------------------------------------------------------------
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates curl git bzip2 aria2 ffmpeg procps tini \
+        build-essential libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+    # -----------------------------------------------------------------------
+    # Micromamba
+    # -----------------------------------------------------------------------
+    export MAMBA_ROOT_PREFIX=/opt/conda
+    export MAMBA_NO_BANNER=1
+    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | \
+        tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba
+
+    micromamba create -y -n germinal python=3.10
+    micromamba clean -a -y
+
+    export PATH=/opt/conda/envs/germinal/bin:${PATH}
+    export PYTHONUNBUFFERED=1
+    export MPLBACKEND=Agg
+    export HYDRA_FULL_ERROR=1
+    export PIP_NO_CACHE_DIR=1
+
+    # -----------------------------------------------------------------------
+    # OpenMM + PDBFixer via conda-forge (best CUDA compatibility).
+    # pdbfixer is installed HERE, independently of colabfold — this is why
+    # dropping colabfold below does not break pr_alternative_utils.py.
+    # -----------------------------------------------------------------------
+    micromamba install -y -n germinal -c conda-forge \
+        openmm \
+        pdbfixer \
+    && micromamba clean -a -y
+
+    # -----------------------------------------------------------------------
+    # Core Python packages
+    #
+    # REMOVED vs v1.0.0:  cvxopt      GPL-3.0-or-later, only used by mgda()
+    #                     colabfold   only imported by the deleted af3.py
+    #                     MDAnalysis  zero imports (takes GridDataFormats with it)
+    # RETAINED:           mdtraj      LGPL-2.1+, imported by filters/pDockQ.py
+    #                     ipsae       MIT, supplies pDockQ2 / LIS / ipSAE metrics
+    #                     freesasa    MIT
+    # -----------------------------------------------------------------------
+    python -m pip install --upgrade pip wheel setuptools
+    python -m pip install uv
+
+    uv pip install --system \
+        pandas matplotlib numpy biopython scipy seaborn tqdm ffmpeg py3dmol \
+        chex dm-haiku==0.0.13 dm-tree joblib ml-collections immutabledict \
+        optax mdtraj ipsae==1.0.1 freesasa
+
+    # -----------------------------------------------------------------------
+    # PyTorch (CUDA 12.4)
+    # -----------------------------------------------------------------------
+    uv pip install --system \
+        --index-url https://download.pytorch.org/whl/cu124 \
+        "torch==2.6.0" \
+        "torchvision==0.21.0" \
+        "torchaudio==2.6.0"
+
+    uv pip install --system torchtyping==0.1.5
+
+    PYG_URL="https://data.pyg.org/whl/torch-2.6.0%2Bcu124.html"
+    uv pip install --system "torch_geometric==2.6.*" -f "${PYG_URL}"
+
+    # -----------------------------------------------------------------------
+    # Antibody language model
+    #
+    # The pipeline imports ablang2 only. ablang2.pretrained() selects
+    # 'ablang1-heavy' for VHH and 'ablang2-paired' for scFv, and ablang2
+    # carries its own loader for the AbLang1 weights
+    # (ablang2/load_model.py: ablang-heavy.tar.gz -> amodel.pt).
+    # `ablang` is installed because ablang2 is installed --no-deps; it is not
+    # on the pipeline's code path.
+    #
+    # Licence: ablang and ablang2 are both BSD 3-Clause (NOT Apache 2.0 as
+    # stated in the v1.0.0 README, manuscript and .def file).
+    # -----------------------------------------------------------------------
+    uv pip install --system \
+        ablang \
+        ablang2==0.2.1 --no-deps
+
+    uv pip install --system rotary_embedding_torch==0.8.9 --no-deps
+
+    # -----------------------------------------------------------------------
+    # Cofolding model.  NOTE: `iglm` is NOT installed in the release build.
+    # See opengerminal_v1.1.0_bench.def for the benchmark-only image.
+    # -----------------------------------------------------------------------
+    uv pip install --system chai-lab==0.6.1
+
+    # -----------------------------------------------------------------------
+    # JAX (pinned to 0.5.3, CUDA 12 build)
+    # -----------------------------------------------------------------------
+    uv pip install --system jax==0.5.3
+    uv pip install --system hydra-core omegaconf
+    uv pip install --system \
+        "jax[cuda12_pip]==0.5.3" \
+        -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+    # NOTE: PyRosetta is intentionally NOT installed. Relaxation and interface
+    # scoring are provided by germinal/filters/pr_alternative_utils.py using
+    # OpenMM + FASPR + FreeSASA + Biopython + sc-rs.
+
+    # -----------------------------------------------------------------------
+    # OpenGerminal source (git tag v1.1.0)
+    # -----------------------------------------------------------------------
+    mkdir -p /workspace
+    cp -r /tmp/germinal_src/. /workspace/
+    cd /workspace
+    uv pip install --system -e /workspace/colabdesign
+    uv pip install --system -e .
+
+    # -----------------------------------------------------------------------
+    # Build-time assertions.  The build FAILS if any of these do not hold.
+    # These are the machine-checkable form of the claims made in the
+    # manuscript and in the response to Reviewer 2 point 1.
+    # -----------------------------------------------------------------------
+    echo "=== verifying release invariants ==="
+
+    ! python -c "import iglm"     2>/dev/null || { echo "FAIL: iglm importable";     exit 1; }
+    ! python -c "import pyrosetta" 2>/dev/null || { echo "FAIL: pyrosetta importable"; exit 1; }
+    ! python -c "import cvxopt"   2>/dev/null || { echo "FAIL: cvxopt importable";   exit 1; }
+    ! python -c "import MDAnalysis" 2>/dev/null || { echo "FAIL: MDAnalysis importable"; exit 1; }
+    ! python -c "import colabfold" 2>/dev/null || { echo "FAIL: colabfold importable"; exit 1; }
+
+    test ! -e /workspace/germinal/filters/af3.py       || { echo "FAIL: af3.py present";        exit 1; }
+    test ! -e /workspace/params/DAlphaBall.gcc         || { echo "FAIL: DAlphaBall present";    exit 1; }
+
+    # The IgLM source stays in the tree on purpose (the benchmark image adds the
+    # package back for the reference arm), so grepping for the string would fail
+    # here by design and prove nothing. The invariant is REACHABILITY, and it has
+    # two halves, both of which v1.0.0 would have failed:
+    #   - the scoring module must import with no iglm installed. In v1.0.0 it
+    #     could not: filter_utils.py imported IgLM at module scope.
+    #   - the ColabDesign hook must be None, so ablm_model: iglm cannot run.
+    # The benchmark image asserts the mirror image of the second line.
+    python -c "import germinal.filters.filter_utils" \
+        || { echo "FAIL: filter_utils does not import without iglm"; exit 1; }
+    python -c "from colabdesign.af.prep import CustomIgLM; assert CustomIgLM is None" \
+        || { echo "FAIL: CustomIgLM is not None in the release image"; exit 1; }
+
+    python -c "import ablang2, chai_lab, openmm, freesasa, pdbfixer, mdtraj; print('imports OK')"
+    python -c "import ablang2; print('ablang2', ablang2.__version__ if hasattr(ablang2,'__version__') else 'n/a')"
+
+    echo "=== release invariants OK ==="
+
+    mkdir -p /workspace/params /workspace/pdbs /workspace/results
+
+    # -----------------------------------------------------------------------
+    # Cleanup
+    # -----------------------------------------------------------------------
+    micromamba clean -a -y
+    pip cache purge 2>/dev/null || true
+    rm -rf /tmp/germinal_src
+
+%files
+    # v1.1.0 source tree only. params_from_sif.tar is deliberately NOT
+    # included — AF-Multimer parameters are supplied at runtime (see %help).
+    germinal_src /tmp/germinal_src
+
+%runscript
+    exec python /workspace/run_germinal.py "$@"
+
+%help
+    OpenGerminal v1.1.0 — PyRosetta-free Germinal antibody design pipeline.
+
+    WHAT THIS IMAGE DOES NOT CONTAIN
+        PyRosetta            replaced by OpenMM + FASPR + FreeSASA + Biopython + sc-rs
+        IgLM                 removed; the language model is AbLang
+        AlphaFold 3 module   removed (non-commercial terms)
+        cvxopt (GPL-3.0)     removed; gradient merging uses PCGrad
+        AlphaFold2 params    NOT bundled — supply at runtime, see below
+
+    ANTIBODY LANGUAGE MODEL
+        package        ablang2 v0.2.1
+        model (VHH)    ablang1-heavy
+        model (scFv)   ablang2-paired
+        weights        ablang-heavy.tar.gz -> amodel.pt
+                       sha256 ab0888f7dc5e89fbf10568a100f081eadf9386bd460d3cdf1d6731044a01266b
+        licence        BSD 3-Clause
+
+    REQUIRED RUNTIME BIND MOUNTS
+        AlphaFold-Multimer parameters are required by Stage 1 (gradient
+        hallucination) and are ~5.4 GB, so they are not baked into the image:
+
+          --bind /path/to/af_params:/workspace/params
+
+        Obtain them once with:
+          aria2c -x 16 https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar
+        The parameters are CC BY 4.0 (DeepMind relicensed them in January 2022).
+
+        Other mounts:
+          --bind /path/to/pdbs:/workspace/pdbs
+          --bind /path/to/results:/workspace/results
+          --bind /path/to/chai_cache:/opt/conda/envs/germinal/lib/python3.10/site-packages/downloads
+          --bind /path/to/ablang_weights:/opt/conda/envs/germinal/lib/python3.10/site-packages/ablang2/model-weights-ablang1-heavy
+
+    EXAMPLE
+        apptainer exec --nv \
+          --bind $PARAMS:/workspace/params \
+          --bind $PDBS:/workspace/pdbs \
+          --bind $RESULTS:/workspace/results \
+          opengerminal_v1.1.0.sif \
+          python run_germinal.py run=vhh_pdl1 target=pdl1 experiment_name=exp1
+
+    KNOWN APPROXIMATIONS
+        Three PyRosetta-derived interface metrics retain placeholder values
+        because the energy units cannot be mapped to OpenMM output without
+        recalibration:
+            binder_score     -1.0    recorded only; also used by Stage 2 selection
+            interface_dG    -10.0    recorded only, not a filter threshold
+            interface_hbonds    5    SEE BELOW
+        Two further placeholders are inherited from upstream Germinal's
+        Chai-1 integration:
+            chain_ptm          1.0
+            chain_iptm         1.0
+
+        interface_hbonds is fixed at 5, which is above the Stage 4 threshold
+        of >= 3, so that filter always passes. Filter thresholds inherited
+        from Germinal were calibrated against PyRosetta energies and SHOULD BE
+        RECALIBRATED against your own benchmark data before use.

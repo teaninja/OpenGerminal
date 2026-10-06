@@ -1,0 +1,227 @@
+# germinal_ref_1e1c1a5.def  —  UPSTREAM REFERENCE build (arms A and B)
+# ===========================================================================
+# Upstream Germinal at commit 1e1c1a5 (2026-04-24, PR #60) — our fork point.
+#
+# WHY WE BUILD THIS RATHER THAN USING THE PUBLISHED UPSTREAM IMAGE
+#   Docker Hub jwang003/germinal has exactly two tags:
+#       latest  sha256:2dcd42d0f707950052be27666944fe432742a35f37e76e16d81a406be95d70ae
+#               pushed 2025-10-05
+#       v0.1    sha256:eeb5bdd36bd81eb4d82af665a6840da09fe0bee8e44c6f35fce82f532eb4f73b
+#               pushed 2025-09-28
+#   Both predate PR #40 (abd7c75, 2025-11-26), which introduced AbLang as a
+#   selectable language model. Neither can run arm B (Germinal + AbLang).
+#   No published upstream image matches our fork point, so the reference
+#   container must be built.
+#
+#   The original submission's reference arm used the pulled `latest` image
+#   (local SIF build-date 2026-04-24, content from the 2025-10-05 push, local
+#   sha256 a4fedb368607603b51a18497e181ace409b57302959f45f097106f61a50c7fec).
+#   Its content is ~6 months and ~30 commits behind the OpenGerminal side.
+#   That version gap was a third, unreported confounder alongside the two the
+#   reviewers identified. Building both Germinal arms at our fork point
+#   removes it.
+#
+# ONE DELIBERATE DEVIATION FROM THE UPSTREAM RECIPE  [R1-M10, R1-m3]
+#   Upstream's Dockerfile installs PyRosetta with:
+#       uv pip install --system pyrosetta-installer
+#       python -c "import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()"
+#   That installs the current *weekly* (devel) build. RosettaCommons does not
+#   retain weekly builds, so the recipe is not reproducible by construction —
+#   the PyRosetta version in upstream's published image cannot be recovered
+#   from the recipe, and rebuilding today would yield a different one.
+#
+#   We therefore pin a quarterly build, which RosettaCommons maintains
+#   long-term specifically for reproducibility, and record the version.
+#   This deviation and its reason are stated in the supplementary material.
+#
+# 🔴 THE pdbs/ IN THIS IMAGE MUST NOT BE USED
+#   The upstream tree copied in below carries upstream's five input PDBs, which
+#   are AlphaFold 3 predictions. v1.1.0 replaces them with experimental
+#   structures (5O45, 6NMY, 3I40) and Chai-1 rebuilds. All four arms of the
+#   factorial have to be given the SAME five input files, or the input
+#   structures become a fourth confounder on top of the two under test.
+#
+#   The input files therefore come from the runtime bind mount, never from any
+#   image: each arm gets its own runs/<batch>/<target>/<arm>/pdbs/ seeded from
+#   the RELEASE image, bound over /workspace/pdbs. The directory has to be
+#   writable in any case, because germinal/utils/config.py writes the starting
+#   complex back into pdb_dir.
+#
+#   Per-arm rather than one shared directory, and that is a choice with a
+#   reason: the starting complex is built by create_starting_structure() in
+#   utils.py, which is one of the files that differs between upstream and
+#   OpenGerminal. A shared directory would let whichever arm ran first fix the
+#   Stage 1 input for all four, so one arm's code would silently decide an
+#   input to the other three. Each arm building its own keeps every arm running
+#   its own code end to end, which is what the comparison is about. The
+#   constant held across arms is the five published input files, and that is
+#   checkable: the seeded copies must be byte-identical across all four arms.
+#
+# LICENCE NOTE — DO NOT DEPOSIT THIS IMAGE
+#   PyRosetta is under the PyRosetta Software Non-Commercial License
+#   Agreement. This .def file and the pinned version are deposited so that
+#   anyone can rebuild the reference arms; the image itself is not
+#   redistributed. This asymmetry — the reference container cannot be
+#   archived alongside the paper while the OpenGerminal container can — is a
+#   concrete instance of the licensing barrier this work removes.
+#
+# Build on HPC login node:
+#   module load apptainer
+#   apptainer build --fakeroot germinal_ref_1e1c1a5.sif germinal_ref_1e1c1a5.def
+#
+# Required in the same directory:
+#   germinal_upstream_src/   = git archive of upstream 1e1c1a5
+#       cd ~/germinal && git archive 1e1c1a5 | tar -x -C germinal_upstream_src
+# ===========================================================================
+
+Bootstrap: docker
+From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+
+%labels
+    maintainer teaninja
+    version germinal-1e1c1a5-ref
+    description "Upstream Germinal at 1e1c1a5, benchmark reference arms A and B. NOT FOR DISTRIBUTION."
+    upstream_commit 1e1c1a5
+    upstream_commit_date 2026-04-24
+    upstream_pr 60
+    contains_pyrosetta true
+    pyrosetta_channel quarterly-pinned
+    distribution none
+
+%environment
+    export MAMBA_ROOT_PREFIX=/opt/conda
+    export MAMBA_NO_BANNER=1
+    export CONDA_ENV=germinal
+    export PATH=/opt/conda/envs/germinal/bin:${PATH}
+    export PYTHONUNBUFFERED=1
+    export MPLBACKEND=Agg
+    export HYDRA_FULL_ERROR=1
+    export PIP_NO_CACHE_DIR=1
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates curl git bzip2 aria2 ffmpeg procps tini \
+        build-essential libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+    export MAMBA_ROOT_PREFIX=/opt/conda
+    export MAMBA_NO_BANNER=1
+    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | \
+        tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba
+
+    micromamba create -y -n germinal python=3.10
+    micromamba clean -a -y
+
+    export PATH=/opt/conda/envs/germinal/bin:${PATH}
+    export PIP_NO_CACHE_DIR=1
+
+    python -m pip install --upgrade pip wheel setuptools
+    python -m pip install uv
+
+    # -----------------------------------------------------------------------
+    # Upstream dependency set, as declared at 1e1c1a5.
+    # cvxopt IS retained here: upstream declares it, and arms A/B must run
+    # upstream code as published. The reference arms are not a distributed
+    # artifact, so the GPL question that applies to our release does not
+    # apply to this image.
+    # -----------------------------------------------------------------------
+    uv pip install --system \
+        pandas matplotlib numpy biopython scipy seaborn tqdm ffmpeg py3dmol \
+        chex dm-haiku==0.0.13 dm-tree joblib ml-collections immutabledict \
+        optax cvxopt mdtraj colabfold ipsae==1.0.1
+
+    uv pip install --system \
+        --index-url https://download.pytorch.org/whl/cu124 \
+        "torch==2.6.0" "torchvision==0.21.0" "torchaudio==2.6.0"
+    uv pip install --system torchtyping==0.1.5
+    uv pip install --system "torch_geometric==2.6.*" \
+        -f "https://data.pyg.org/whl/torch-2.6.0%2Bcu124.html"
+
+    # Both language models: arm A uses iglm, arm B uses ablang.
+    uv pip install --system ablang ablang2==0.2.1 --no-deps
+    uv pip install --system rotary_embedding_torch==0.8.9 --no-deps
+    uv pip install --system iglm chai-lab==0.6.1
+
+    uv pip install --system jax==0.5.3
+    uv pip install --system hydra-core omegaconf
+    uv pip install --system "jax[cuda12_pip]==0.5.3" \
+        -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+    # -----------------------------------------------------------------------
+    # PyRosetta — PINNED QUARTERLY BUILD (deviation from upstream, see header)
+    #
+    # SELECTION RULE: the quarterly release that was current when the code
+    # baseline was taken. Our fork point is upstream 1e1c1a5 (2026-04-24);
+    # the quarterly current at that date is 2026.3 (released 2026-01-15).
+    # Tying the PyRosetta version to the code baseline by a stated rule is
+    # preferable to "whatever was newest when we happened to build", which
+    # would make the version a function of the revision date.
+    #
+    # Only two quarterly builds exist as of 2026-09-28:
+    #   2026.3 +releasequarterly.5e498f1409   2026-01-15   <- pinned
+    #   2026.29+releasequarterly.80a0635615   2026-07-24
+    # (pyrosetta-0-*.whl is an alias for latest and must not be used to pin.)
+    #
+    # NOTE: PyRosetta version affects FastRelax and score_interface output, so
+    # the absolute values of the reference arms will differ from those in the
+    # original submission, whose reference image used an unrecoverable weekly
+    # build. Arms A and B share this single image, so the new benchmark is
+    # internally consistent and the A<->C / B<->D contrasts are unaffected.
+    # This must be stated in the supplementary configuration table.
+    # -----------------------------------------------------------------------
+    PYROSETTA_VERSION="2026.3+releasequarterly.5e498f1409"
+
+    uv pip install --system "pyrosetta==${PYROSETTA_VERSION}" \
+        --find-links https://west.rosettacommons.org/pyrosetta/quarterly/release
+
+    python -c "import pyrosetta; print('pyrosetta', pyrosetta.__version__)"
+    python -c "import pyrosetta, sys; v=pyrosetta.__version__; \
+        sys.exit(0) if '2026.3' in v else (print('FAIL: unexpected pyrosetta', v) or sys.exit(1))"
+
+    # -----------------------------------------------------------------------
+    # Upstream source at 1e1c1a5, unmodified
+    # -----------------------------------------------------------------------
+    mkdir -p /workspace
+    cp -r /tmp/germinal_upstream_src/. /workspace/
+    cd /workspace
+    uv pip install --system -e /workspace/colabdesign
+    uv pip install --system -e .
+
+    echo "=== verifying reference invariants ==="
+    python -c "import iglm;    print('iglm OK')"
+    python -c "import ablang2; print('ablang2 OK')"
+    python -c "import pyrosetta; print('pyrosetta OK')"
+    test -e /workspace/germinal/filters/pyrosetta_utils.py || { echo "FAIL: pyrosetta_utils.py missing"; exit 1; }
+    echo "=== reference invariants OK ==="
+
+    mkdir -p /workspace/params /workspace/pdbs /workspace/results
+
+    micromamba clean -a -y
+    pip cache purge 2>/dev/null || true
+    rm -rf /tmp/germinal_upstream_src
+
+%files
+    germinal_upstream_src /tmp/germinal_upstream_src
+
+%runscript
+    exec python /workspace/run_germinal.py "$@"
+
+%help
+    Upstream Germinal at commit 1e1c1a5 (2026-04-24, PR #60).
+    Benchmark reference arms only. NOT FOR DISTRIBUTION (PyRosetta is under a
+    non-commercial licence).
+
+    Arm A:  ablm_model: "iglm"     (upstream default)
+    Arm B:  ablm_model: "ablang"
+
+    Both arms run this single image, so the language-model axis of the
+    factorial design is not confounded with a code version difference.
+
+    AlphaFold-Multimer parameters must be bind-mounted:
+      --bind /path/to/af_params:/workspace/params
+
+    The input structures must ALSO be bind-mounted, and must be the v1.1.0 five
+    files seeded from the release image, not the AlphaFold 3 predictions that
+    the upstream tree in this image carries:
+      --bind /path/to/batch/pdbs:/workspace/pdbs

@@ -1,0 +1,98 @@
+# opengerminal_v1.1.0_bench.def  —  BENCHMARK-ONLY build (adds IgLM)
+# ===========================================================================
+# This image is the released image plus the IgLM package. No source changes.
+#
+# WHY IT EXISTS
+#   The 2x2 factorial benchmark requires arm C = OpenGerminal + IgLM, while the
+#   release build deliberately ships without the IgLM package (Reviewer 2,
+#   point 1). This image supplies that arm and nothing more.
+#
+# WHY NO SOURCE IS COPIED IN
+#   Because the release build does not strip the IgLM code: it removes the
+#   package and makes the two imports lazy, so the path is present but inert.
+#   Installing the package is therefore sufficient, and this file needs no
+#   %files section at all. An earlier draft copied a germinal_src_iglm/ tree
+#   back in; that would now overwrite files with identical copies of
+#   themselves and, worse, reintroduce exactly the "image contains source that
+#   no commit accounts for" problem this revision exists to remove.
+#
+# WHY IT BOOTSTRAPS FROM THE RELEASE IMAGE RATHER THAN REBUILDING
+#   Provenance. With `From: localimage` the starting point is the exact
+#   released .sif, so the difference between the two images is one recorded
+#   install step. Two parallel builds from the same .def could diverge
+#   silently (different wheel resolution, different build date).
+#
+#   Precisely: the ACTION is one pip install, but the resulting package set
+#   differs by iglm AND its dependencies (iglm requires transformers, which
+#   the release image does not contain because nothing else needs it). Do not
+#   describe the two images as differing by a single package.
+#
+# DISTRIBUTION
+#   NOT deposited and NOT part of the release. Used only to generate the
+#   reference arms reported in the manuscript. IgLM is under a Johns Hopkins
+#   University non-commercial licence.
+#
+# Build on HPC login node, AFTER opengerminal_v1.1.0.sif exists:
+#   module load apptainer
+#   apptainer build --fakeroot opengerminal_v1.1.0_bench.sif opengerminal_v1.1.0_bench.def
+# ===========================================================================
+
+Bootstrap: localimage
+From: opengerminal_v1.1.0.sif
+
+%labels
+    version 1.1.0-bench
+    description "OpenGerminal v1.1.0 + IgLM, benchmark reference arm only. NOT FOR DISTRIBUTION."
+    contains_iglm true
+    derived_from opengerminal_v1.1.0.sif
+    distribution none
+
+%post
+    export PATH=/opt/conda/envs/germinal/bin:${PATH}
+    export PIP_NO_CACHE_DIR=1
+
+    # The only change from the release image. Pulls transformers as well.
+    uv pip install --system iglm
+
+    echo "=== verifying bench invariants ==="
+
+    python -c "import iglm" || { echo "FAIL: iglm not importable in the bench image"; exit 1; }
+
+    # The mirror of the release assertion, and the reason it is worth the line:
+    # colabdesign/af/prep.py imports CustomIgLM inside a try/except and leaves
+    # it as None when the package is missing, then calls CustomIgLM(...) under
+    # `if ablm_model == "iglm"`. If the install above silently failed, arm C
+    # would die with "TypeError: 'NoneType' object is not callable", which says
+    # nothing about the real cause. Fail here instead, at build time.
+    python -c "from colabdesign.af.prep import CustomIgLM; assert CustomIgLM is not None" \
+        || { echo "FAIL: CustomIgLM is None, so ablm_model=iglm cannot run"; exit 1; }
+
+    # Inherited from the release image; re-checked so that a mistake in the
+    # bootstrap source cannot pass unnoticed.
+    ! python -c "import pyrosetta" 2>/dev/null || { echo "FAIL: pyrosetta present"; exit 1; }
+    ! python -c "import cvxopt"    2>/dev/null || { echo "FAIL: cvxopt present";    exit 1; }
+    test ! -e /workspace/germinal/filters/af3.py || { echo "FAIL: af3.py present";  exit 1; }
+
+    echo "=== bench invariants OK ==="
+
+    pip cache purge 2>/dev/null || true
+
+%runscript
+    exec python /workspace/run_germinal.py "$@"
+
+%help
+    BENCHMARK-ONLY image. Not the release. Not for distribution.
+
+    Identical to opengerminal_v1.1.0.sif except that the IgLM package (and its
+    dependency transformers) is installed, which makes the inert IgLM code path
+    in the released source reachable. No source file differs between the two
+    images.
+
+    Use with:  ablm_model: "iglm"
+
+    One trajectory with ablm_model: "iglm" must be run and recorded before this
+    image is used for arm C. The build assertion proves the hook is callable;
+    it does not prove the arm produces output.
+
+    IgLM is distributed under a Johns Hopkins University non-commercial
+    licence. Do not redistribute this image.
