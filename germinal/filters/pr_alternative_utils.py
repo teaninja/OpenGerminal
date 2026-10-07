@@ -1678,11 +1678,31 @@ def openmm_relax_subprocess(pdb_file_path, output_pdb_path, use_gpu_relax=False,
     # than trusted.
     fallback_signature = "[OpenMM-Relax] ERROR; copied input to output"
     
+    # The child relaxes on the CPU, so give it an environment in which the GPU
+    # does not exist. Two independent mechanisms, because the failure came from a
+    # third-party library creating a Context with no platform argument, and the
+    # next such caller will not announce itself either:
+    #
+    #   CUDA_VISIBLE_DEVICES=""      the CUDA platform cannot be selected
+    #                                because it is not there to select
+    #   OPENMM_DEFAULT_PLATFORM=CPU  OpenMM reads this (the string appears in
+    #                                openmm/__init__.py and openmm/openmm.py),
+    #                                so an implicit choice lands on the CPU even
+    #                                where a device is visible
+    #
+    # Only when the caller asked for the CPU. use_gpu_relax=True still gets a
+    # child that can see the GPU, so the parameter keeps meaning what it says.
+    child_env = dict(os.environ)
+    if not use_gpu_relax:
+        child_env["CUDA_VISIBLE_DEVICES"] = ""
+        child_env["OPENMM_DEFAULT_PLATFORM"] = "CPU"
+
     attempts = int(max(1, int(max_attempts)))
     for attempt_idx in range(1, attempts + 1):
         # Capture output to inspect for fallback while still forwarding to parent
         proc = subprocess.run(
-            [sys.executable, "-c", py_code], timeout=timeout, capture_output=True, text=True, cwd=cwd
+            [sys.executable, "-c", py_code], timeout=timeout, capture_output=True, text=True, cwd=cwd,
+            env=child_env,
         )
 
         # Forward child output to parent streams to preserve visibility, but filter stderr
