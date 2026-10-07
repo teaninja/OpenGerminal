@@ -885,7 +885,13 @@ def _add_hydrogens_and_minimize(pdb_in_path, pdb_out_path, platform_order=None,
             pass
         return None, (time.time() - t0)
 
-def openmm_relax(pdb_file_path, output_pdb_path, use_gpu_relax=True,
+# use_gpu_relax defaults to False here and in openmm_relax_subprocess below.
+# The parameter crosses four functions, each of which used to default it to True,
+# so a caller that forgot it silently selected the GPU. Two rounds were spent
+# patching individual platform-selection sites; removing the defaults removes the
+# class. On this cluster the GPU path cannot work anyway -- the CUDA module fails
+# to load with CUDA_ERROR_UNSUPPORTED_PTX_VERSION -- so the honest default is CPU.
+def openmm_relax(pdb_file_path, output_pdb_path, use_gpu_relax=False,
                  openmm_max_iterations=1000, # Safety cap per stage to avoid stalls (set 0 for unlimited)
                  # Default force tolerances for ramp stages (kJ/mol/nm)
                  openmm_ramp_force_tolerance_kj_mol_nm=2.0,
@@ -1591,11 +1597,16 @@ def openmm_relax(pdb_file_path, output_pdb_path, use_gpu_relax=True,
         return platform_name_used
 
     except Exception as _:
-        shutil.copy(pdb_file_path, output_pdb_path)
+        # Never substitute the unrelaxed input for the relaxed output. That single
+        # line cost three pilot batches: the caller could not tell a relaxed
+        # structure from an untouched one, so the comparison between the PyRosetta
+        # arms and the open-source arms was silently measuring two different
+        # protocols. Failing loudly is cheap; a wrong number that looks right is
+        # not. The exception is re-raised at the end of this handler.
         gc.collect()
         elapsed_total = time.time() - start_time
-        print(f"[OpenMM-Relax] ERROR; copied input to output for {basename} after {elapsed_total:.2f}s")
-        print(f"[OpenMM-Relax] ERROR; exeception {str(_)}")
+        print(f"[OpenMM-Relax] FAILED for {basename} after {elapsed_total:.2f}s; no output written")
+        print(f"[OpenMM-Relax] FAILED exception: {str(_)}")
         if _perf is not None:
             try:
                 _perf["exception"] = str(_)
@@ -1608,6 +1619,7 @@ def openmm_relax(pdb_file_path, output_pdb_path, use_gpu_relax=True,
                 os.remove(_deconcat_tmp)
             except Exception:
                 pass
+        raise
                 
         # Guard against 'platform_name_used' not being assigned yet
         try:
@@ -1615,7 +1627,7 @@ def openmm_relax(pdb_file_path, output_pdb_path, use_gpu_relax=True,
         except UnboundLocalError:
             return None
 
-def openmm_relax_subprocess(pdb_file_path, output_pdb_path, use_gpu_relax=True, timeout=None, max_attempts=3, use_faspr_repack=True):
+def openmm_relax_subprocess(pdb_file_path, output_pdb_path, use_gpu_relax=False, timeout=None, max_attempts=3, use_faspr_repack=True):
     """Run openmm_relax in a fresh Python process to fully reset OpenCL context per run.
     Retries if the child fell back to copying input (soft failure) or if the child crashes (hard failure).
     Streams child logs to parent stdout/stderr so DEBUG lines are visible.
@@ -1625,7 +1637,11 @@ def openmm_relax_subprocess(pdb_file_path, output_pdb_path, use_gpu_relax=True, 
 
     # Change in cwd is needed when running outside of code directory
     # parents[1] is the directory above the current one
-    cwd = pathlib.Path(__file__).parents[1].resolve()
+    # parents[2] is the repository root, the directory that `pip install -e` put on
+    # sys.path; parents[1] is the package directory, which is not importable as
+    # `germinal`. The editable install makes this work from any cwd, so this is
+    # belt and braces rather than the load-bearing part.
+    cwd = pathlib.Path(__file__).parents[2].resolve()
     
     # also resolve input/output to allow for running outside of main code repo
     pdb_file_path = str(pathlib.Path(pdb_file_path).resolve())
@@ -1645,13 +1661,21 @@ def openmm_relax_subprocess(pdb_file_path, output_pdb_path, use_gpu_relax=True, 
     code_parts.append("logging.getLogger('pyrosetta').setLevel(logging.WARNING)")
     code_parts.append("logging.getLogger('pyrosetta.distributed').setLevel(logging.WARNING)")
     code_parts.append("logging.getLogger('pyrosetta.distributed.utility.pickle').setLevel(logging.WARNING)")
-    code_parts.append("from functions.pr_alternative_utils import openmm_relax")
+    # The child used to import "functions.pr_alternative_utils", a path from the
+    # BindCraft-era layout that does not exist in this tree, so the wrapper could
+    # never have worked -- which is why the single-relax path ran in-process and
+    # inherited whatever state the pipeline had already put on the GPU.
+    code_parts.append("from germinal.filters.pr_alternative_utils import openmm_relax")
     code_parts.append(
         f"plat = openmm_relax({pdb_file_path!r}, {output_pdb_path!r}, use_gpu_relax={bool(use_gpu_relax)}, use_faspr_repack={bool(use_faspr_repack)})"
     )    
     py_code = "; ".join(code_parts)
 
-    # Signature to detect soft fallback path inside child (input copied to output)
+    # The child no longer copies its input to its output, so this soft fallback can
+    # no longer happen: a failing child exits non-zero and is caught by the
+    # hard-failure branch below. The check is kept so that an older child -- a
+    # sandbox or image left over from a previous build -- is still detected rather
+    # than trusted.
     fallback_signature = "[OpenMM-Relax] ERROR; copied input to output"
     
     attempts = int(max(1, int(max_attempts)))

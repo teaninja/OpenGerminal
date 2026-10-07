@@ -61,11 +61,23 @@ def pr_relax(pdb_file, relaxed_pdb_path):
     solvent, ramped backbone restraints, and optional FASPR side-chain
     repacking. Typically 2-4x faster than Rosetta FastRelax.
 
-    Both openmm_relax calls below pin use_gpu_relax=False, so this function
-    always minimizes on the CPU; pr_relax itself exposes no such parameter, and
-    turning the GPU path on means editing those two call sites. On local
-    Blackwell GPUs the GPU path falls back to the CPU anyway because of a PTX
-    version mismatch; results are identical, only speed differs.
+    Relaxation runs in a separate process, on the CPU, one process per call.
+
+    The in-process path failed on every call inside the pipeline on this cluster
+    (CUDA_ERROR_UNSUPPORTED_PTX_VERSION, after about a second), while the same
+    input relaxed on the CPU in a fresh process both with and without JAX holding
+    the GPU. The root cause is not identified; process isolation is what the
+    measurements support, and openmm_relax_subprocess exists for exactly that.
+
+    The previous version of this docstring claimed the GPU path "falls back to the
+    CPU anyway" and that "results are identical, only speed differs". On this
+    cluster that was false in the way that matters: it did not fall back, it
+    copied its input to its output, and the caller could not tell. The claim is
+    recorded here because believing it is what delayed finding the defect.
+
+    CPU relaxation costs roughly 12 minutes per call on 4 cores, against seconds
+    for PyRosetta FastRelax. That is a real cost of the PyRosetta-free path and
+    belongs in the results, not in a footnote.
     """
     if os.path.exists(relaxed_pdb_path):
         return
@@ -75,7 +87,7 @@ def pr_relax(pdb_file, relaxed_pdb_path):
         shutil.copy(pdb_file, relaxed_pdb_path)
         return
     try:
-        openmm_relax(
+        openmm_relax_subprocess(
             pdb_file_path=pdb_file,
             output_pdb_path=relaxed_pdb_path,
             use_gpu_relax=False,
@@ -83,11 +95,18 @@ def pr_relax(pdb_file, relaxed_pdb_path):
         )
     except Exception as e:
         print(f"[pr_relax] Relax failed ({e}), retrying without FASPR...")
-        openmm_relax(
+        openmm_relax_subprocess(
             pdb_file_path=pdb_file,
             output_pdb_path=relaxed_pdb_path,
             use_gpu_relax=False,
             use_faspr_repack=False,
+        )
+    # No final except: if both attempts fail the exception propagates. A missing
+    # relaxed structure stops the job, which is the correct outcome -- the previous
+    # behaviour was to carry on with the unrelaxed one.
+    if not os.path.exists(relaxed_pdb_path):
+        raise RuntimeError(
+            f"[pr_relax] relax reported success but produced no file: {relaxed_pdb_path}"
         )
 
 
@@ -110,6 +129,7 @@ def _relax_worker_free(pdb_file, relaxed_pdb_path, seed):
             import traceback
             f.write(traceback.format_exc())
         print(f"[relax_worker] FAILED for {relaxed_pdb_path}: {e}")
+        raise
 
 
 def pr_relax_parallel(pdb_file, output_dir, design_name, dalphaball_path=None, n_relax=5):

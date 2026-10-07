@@ -384,6 +384,10 @@ class _Trajectory:
         # disagree with the events file (a smoke test measured entered_cofolding=2
         # against three stage2 start events). Denominators must count entry.
         self._entered: set[str] = set()
+        # Ordered, with repeats: stage 4 runs once per redesigned variant, so the
+        # same stage name is entered several times. exclusions[].at_stage needs the
+        # stage that was entered and never closed, and a set cannot answer that.
+        self._entered_order: list[str] = []
         self._terminal = None            # set by accept() / fail() / skip()
         self._fail_reason = None
         self._extra: dict = {}
@@ -392,8 +396,26 @@ class _Trajectory:
 
     def stage_start(self, stage: str, **fields):
         self._entered.add(stage)
+        self._entered_order.append(stage)
         self._rec._emit({"event": "start", "seed": self.seed, "stage": stage, **fields})
         return {"stage": stage, "t0": time.monotonic()}
+
+    def _open_stage(self):
+        """The stage that was entered and never closed, else the last closed one.
+
+        exclusions[].at_stage used to read _stages[-1], the last stage that
+        *finished*. A trajectory that died inside stage 2 was therefore filed as
+        excluded at stage 1, because stage 1 was the last stage to complete. The
+        field is published, so it was wrong in the output; it was not a loss,
+        because the unpaired `start` event stays in events.jsonl and the value is
+        recomputable, but a field nobody can trust is worth no more than one
+        nobody can compute.
+        """
+        closed = [s["stage"] for s in self._stages]
+        for stage in reversed(self._entered_order):
+            if self._entered_order.count(stage) > closed.count(stage):
+                return stage
+        return self._stages[-1]["stage"] if self._stages else None
 
     def stage_end(self, handle: dict, outcome: str, fail_reason=None, **fields):
         if outcome not in OUTCOMES:
@@ -902,7 +924,7 @@ class RunRecorder:
             if outcome in ("error", "skip"):
                 self._exclusions.append({
                     "seed": seed, "reason": t._fail_reason or outcome,
-                    "at_stage": t._stages[-1]["stage"] if t._stages else None,
+                    "at_stage": t._open_stage(),
                     "job_id": self.jobid, "restart": self.restart,
                 })
             # Feed the estimator only with trajectories that ran to a conclusion; an

@@ -276,7 +276,9 @@ def run_filters(
         binder_rmsd = 100
 
     # ========================== Get Log-likelihood from AbLM ==========================
-    # Default to "iglm" if config omits the key (e.g. older configs like
+    # Fall back to "ablang" if the config omits the key. The comment used to say
+    # "iglm", which is what upstream defaults to and what this line does not do.
+    # (e.g. older configs like
     # vhh_il3.yaml). Without this, run_settings["ablm_model"] raises KeyError
     # and crashes the whole trajectory at the LM-likelihood step.
     ablm_model_name = run_settings.get("ablm_model", "ablang")

@@ -262,6 +262,21 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     python -c "import ablang2, chai_lab, openmm, freesasa, pdbfixer, mdtraj; print('imports OK')"
     python -c "import ablang2; print('ablang2', ablang2.__version__ if hasattr(ablang2,'__version__') else 'n/a')"
 
+    # A relax that actually runs, through the same wrapper the pipeline calls.
+    # The assertions that let three broken builds through were `import iglm` and a
+    # grep of the source: both pass while the function is broken at run time. This
+    # one fails the build if no relaxed structure appears, and it is what would
+    # have caught the subprocess wrapper importing a module path that does not
+    # exist in this tree.
+    #
+    # It does NOT cover the failure seen in the pilot. %post runs on a build node
+    # with no GPU, so the CUDA platform is unreachable here and cannot fail here.
+    # The GPU-node smoke run after the build is what covers that, and it is not
+    # optional: the only evidence that relaxation works in the pipeline is a
+    # pipeline run on a GPU node with zero [OpenMM-Relax] FAILED lines.
+    python -c "import os; import germinal.filters.pr_alternative_utils as M; out='/opt/ogr1_relax_assert.pdb'; M.openmm_relax_subprocess(pdb_file_path='/workspace/pdbs/nb.pdb', output_pdb_path=out, max_attempts=1); assert os.path.isfile(out) and os.path.getsize(out) > 0; print('relax assertion OK, bytes', os.path.getsize(out))" || { echo "FAIL: openmm_relax_subprocess produced no relaxed structure"; exit 1; }
+    rm -f /opt/ogr1_relax_assert.pdb
+
     echo "=== release invariants OK ==="
 
     mkdir -p /workspace/params /workspace/pdbs /workspace/results
