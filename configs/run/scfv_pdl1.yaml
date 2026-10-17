@@ -103,6 +103,16 @@ num_recycles_design: 3
 recycle_mode: "last"
 soft_iterations: 60
 
+# OpenMM relaxation platform.
+#   false  CPU. Works on any node; this is what every published OpenGerminal
+#          dataset so far was produced with.
+#   true   CUDA. Needs a driver able to load the PTX built into the image.
+#          Run tools/probe_cuda_platform.py on the node before setting it.
+# There is no "auto" on purpose: an automatic fall-back would decide the
+# platform of a run silently, and the platform is part of that run's identity.
+# If CUDA is asked for and cannot load, the job stops with a pointer.
+use_gpu_relax: false
+
 multi_relax: false
 n_relax: 5
 relax_score_mode: "average"

@@ -53,7 +53,17 @@ except ImportError:
     _HAS_FREESASA = False
 
 
-def pr_relax(pdb_file, relaxed_pdb_path):
+def _looks_like_a_cuda_failure(exc):
+    """Does this exception read like the CUDA platform failing to load?
+
+    Used only to decide whether to append a pointer to an error that is being
+    re-raised either way. It never decides whether to continue.
+    """
+    text = f"{type(exc).__name__}: {exc}".upper()
+    return ("CUDA" in text) or ("PTX" in text) or ("OPENCL" in text)
+
+
+def pr_relax(pdb_file, relaxed_pdb_path, use_gpu_relax=False):
     """
     Replace PyRosetta FastRelax with OpenMM energy minimization.
 
@@ -90,17 +100,30 @@ def pr_relax(pdb_file, relaxed_pdb_path):
         openmm_relax_subprocess(
             pdb_file_path=pdb_file,
             output_pdb_path=relaxed_pdb_path,
-            use_gpu_relax=False,
+            use_gpu_relax=use_gpu_relax,
             use_faspr_repack=True,
         )
     except Exception as e:
         print(f"[pr_relax] Relax failed ({e}), retrying without FASPR...")
-        openmm_relax_subprocess(
-            pdb_file_path=pdb_file,
-            output_pdb_path=relaxed_pdb_path,
-            use_gpu_relax=False,
-            use_faspr_repack=False,
-        )
+        try:
+            openmm_relax_subprocess(
+                pdb_file_path=pdb_file,
+                output_pdb_path=relaxed_pdb_path,
+                use_gpu_relax=use_gpu_relax,
+                use_faspr_repack=False,
+            )
+        except Exception as second:
+            # Add a pointer, never a fall-back. Both branches raise, so a
+            # failed relaxation still stops the job.
+            if use_gpu_relax and _looks_like_a_cuda_failure(second):
+                raise RuntimeError(
+                    "[pr_relax] relaxation failed on the OpenMM CUDA platform. "
+                    "This node's driver may be unable to load the PTX shipped in "
+                    "this image. Run tools/probe_cuda_platform.py on this node to "
+                    "find out which platforms work here, or set "
+                    "use_gpu_relax: false in the run config to relax on the CPU."
+                ) from second
+            raise
     # No final except: if both attempts fail the exception propagates. A missing
     # relaxed structure stops the job, which is the correct outcome -- the previous
     # behaviour was to carry on with the unrelaxed one.
@@ -110,7 +133,7 @@ def pr_relax(pdb_file, relaxed_pdb_path):
         )
 
 
-def _relax_worker_free(pdb_file, relaxed_pdb_path, seed):
+def _relax_worker_free(pdb_file, relaxed_pdb_path, seed, use_gpu_relax=False):
     """
     Worker function for parallel relax (runs in a child process).
     seed is accepted for API compatibility; OpenMM uses its own internal RNG.
@@ -120,7 +143,7 @@ def _relax_worker_free(pdb_file, relaxed_pdb_path, seed):
             openmm_relax_subprocess(
                 pdb_file_path=pdb_file,
                 output_pdb_path=relaxed_pdb_path,
-                use_gpu_relax=False,
+                use_gpu_relax=use_gpu_relax,
                 use_faspr_repack=True,
             )
     except Exception as e:
@@ -132,7 +155,7 @@ def _relax_worker_free(pdb_file, relaxed_pdb_path, seed):
         raise
 
 
-def pr_relax_parallel(pdb_file, output_dir, design_name, dalphaball_path=None, n_relax=5):
+def pr_relax_parallel(pdb_file, output_dir, design_name, dalphaball_path=None, n_relax=5, use_gpu_relax=False):
     """
     Replace parallel PyRosetta FastRelax with parallel OpenMM relaxation.
 
@@ -151,7 +174,7 @@ def pr_relax_parallel(pdb_file, output_dir, design_name, dalphaball_path=None, n
         relaxed_paths.append(relaxed_pdb_path)
         if os.path.exists(relaxed_pdb_path):
             continue
-        p = ctx.Process(target=_relax_worker_free, args=(pdb_file, relaxed_pdb_path, seed))
+        p = ctx.Process(target=_relax_worker_free, args=(pdb_file, relaxed_pdb_path, seed, use_gpu_relax))
         processes.append(p)
 
     for p in processes:

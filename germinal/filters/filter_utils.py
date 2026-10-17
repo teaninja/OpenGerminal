@@ -114,6 +114,7 @@ def run_filters(
             trajectory.design_name,
             run_settings["dalphaball_path"],
             n_relax=run_settings.get("n_relax", 5),
+            use_gpu_relax=run_settings.get("use_gpu_relax", False),
         )
         (best_interface_scores, best_interface_AA, best_interface_residues,
          best_relaxed_pdb) = pyrosetta_utils.score_interface_ensemble(
@@ -139,7 +140,11 @@ def run_filters(
         external_relaxed_pdb = os.path.join(
             structures_directory, trajectory.design_name + "_relaxed.pdb"
         )
-        pyrosetta_utils.pr_relax(external_pdb, external_relaxed_pdb)
+        pyrosetta_utils.pr_relax(
+            external_pdb,
+            external_relaxed_pdb,
+            use_gpu_relax=run_settings.get("use_gpu_relax", False),
+        )
 
         # ========================== Calculate Clashes ==========================
         clash_threshold = run_settings["clash_threshold"]

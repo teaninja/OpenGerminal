@@ -138,7 +138,8 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     # dropping colabfold below does not break pr_alternative_utils.py.
     # -----------------------------------------------------------------------
     micromamba install -y -n germinal -c conda-forge \
-        openmm \
+        openmm=8.6.0 \
+        cuda-version=12.9 \
         pdbfixer \
     && micromamba clean -a -y
 
