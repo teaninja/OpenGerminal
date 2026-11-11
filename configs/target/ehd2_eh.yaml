@@ -1,0 +1,20 @@
+# @package target
+# Derived by ogr1_derive_ehd2_c24e157b.py -- do not edit by hand.
+# source      : /scratch/bh7bu/opengerminal_r1/audit/ehd2_src_c24e157/pdl1.yaml
+# source sha256: a66915fd374fcef3193163448fe24fd08c201d1ee64823bda5c4ecb71ac34699
+# derived     : 2026-10-22T07:36:41 UTC
+# hotspot identities verified against ehd2_eh.pdb
+# EHD2 EH domain, mouse (UniProt Q8BH64 443-538), from PDB 2QPT chain A.
+# Renumbered 1..96 contiguously; UniProt numbering = this + 442.
+# Third benchmark target, alongside PD-L1 and IL-3.
+
+target_name: "ehd2_eh"
+target_pdb_path: "pdbs/ehd2_eh.pdb"
+# Ensure chains in PDB have the right chain IDs (ideally A, B, C, etc.)
+target_chain: "A"
+binder_chain: "B"
+target_hotspots: "A31,A32,A36,A38,A41"
+
+# Residue to be used for Chai-1 distance constraint ({residue 1-letter}{res. num.}). 
+# Can delete or set to None if no constraint. Residue should be in chain A
+hotspot_residue: "W33"

@@ -1,0 +1,28 @@
+# @package target
+# Derived by ogr1_derive_cav1_c24e157c.py -- do not edit by hand.
+# source       : /mnt_r/tmp/cav1_imgcfg/target/pdl1.yaml
+# source sha256: a66915fd374fcef3193163448fe24fd08c201d1ee64823bda5c4ecb71ac34699
+# deriver sha256: d5796e95b1b772608fa241e71aa55ada025141aff3b048b795eec7cf9416d51c
+# derived      : 2026-10-28T06:51:57 UTC
+# hotspots and restraint anchor READ from cav1_dimer.pdb, not typed
+# target_chain is two chains; dimer: true added
+# Caveolin-1 7S complex, two adjacent protomers (A+B) of PDB 7SC0,
+# residues 49-177 each, renumbered 1..129 per chain; UniProt
+# numbering (Q03135) = this + 48. The epitope straddles the A-B
+# interface: it cannot be formed on one protomer, because the same
+# residue on the two chains is 26-36 A apart and a nanobody
+# paratope spans 12-15 A.
+# FIRST TWO-CHAIN BENCHMARK TARGET -- see section 5d of the job
+# script for why that needs its own pre-flight.
+
+target_name: "cav1_dimer"
+target_pdb_path: "pdbs/cav1_dimer.pdb"
+# Ensure chains in PDB have the right chain IDs (ideally A, B, C, etc.)
+target_chain: "A,B"
+binder_chain: "C"
+dimer: true
+target_hotspots: "A28,A29,B10,B13,B17"
+
+# Residue to be used for Chai-1 distance constraint ({residue 1-letter}{res. num.}). 
+# Can delete or set to None if no constraint. Residue should be in chain A
+hotspot_residue: "E28"

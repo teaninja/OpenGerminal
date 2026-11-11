@@ -41,10 +41,6 @@ interface_hydrophobicity:
   operator: '>='
 
 # Confidence metrics
-pdockq2:
-  value: 0.23
-  operator: '>'
-
 external_plddt:
   value: 0.80
   operator: '>='
@@ -61,6 +57,3 @@ external_pae:
   value: 8
   operator: '<'
 
-ipsae:
-  value: 0.6
-  operator: '>='

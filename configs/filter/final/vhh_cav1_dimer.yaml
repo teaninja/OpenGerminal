@@ -1,0 +1,58 @@
+# @package filter.final
+# Final filters for vhh il3
+# These are more stringent filters applied at the end of the pipeline
+
+# Structure metrics
+clashes:
+  value: 1
+  operator: '<'
+
+sc_rmsd:
+  value: 6.0
+  operator: '<'
+
+binder_near_hotspot:
+  value: true
+  operator: '=='
+
+cdr3_hotspot_contacts:
+  value: 1
+  operator: '>='
+
+percent_interface_cdr:
+  value: 0.5
+  operator: '>='
+
+interface_shape_comp:
+  value: 0.6
+  operator: '>='
+
+interface_hbonds:
+  value: 3
+  operator: '>='
+
+# Hydrophobicity metrics
+surface_hydrophobicity:
+  value: 0.4
+  operator: '<='
+
+interface_hydrophobicity:
+  value: 45
+  operator: '>='
+
+# Confidence metrics
+external_plddt:
+  value: 0.80
+  operator: '>='
+
+external_iptm:
+  value: 0.75
+  operator: '>='
+
+external_ptm:
+  value: 0.8
+  operator: '>='
+
+external_pae:
+  value: 8
+  operator: '<'
