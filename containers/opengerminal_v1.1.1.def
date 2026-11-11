@@ -1,6 +1,6 @@
-# opengerminal_v1.1.0.def  —  RELEASE build (no IgLM, no GPL, no AF3)
+# opengerminal_v1.1.1.def  —  RELEASE build (no IgLM, no GPL, no AF3)
 # ===========================================================================
-# Apptainer definition for OpenGerminal v1.1.0.
+# Apptainer definition for OpenGerminal v1.1.1.
 # Derived from germinal_free.def (v1.0.0) with the changes listed below.
 # Each change is annotated with the reviewer item it addresses.
 #
@@ -75,10 +75,10 @@
 #
 # Build on HPC login node:
 #   module load apptainer
-#   apptainer build --fakeroot opengerminal_v1.1.0.sif opengerminal_v1.1.0.def
+#   apptainer build --fakeroot opengerminal_v1.1.1.sif opengerminal_v1.1.1.def
 #
 # Required in the same directory as this .def file:
-#   germinal_src/      the v1.1.0 source tree (git tag v1.1.0)
+#   germinal_src/      the v1.1.1 source tree (git tag v1.1.1)
 # ===========================================================================
 
 Bootstrap: docker
@@ -86,7 +86,7 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
 
 %labels
     maintainer teaninja
-    version 1.1.0
+    version 1.1.1
     description "OpenGerminal - PyRosetta-free Germinal pipeline (release build)"
     base_image nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     contains_iglm false
@@ -214,7 +214,7 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     # OpenMM + FASPR + FreeSASA + Biopython + sc-rs.
 
     # -----------------------------------------------------------------------
-    # OpenGerminal source (git tag v1.1.0)
+    # OpenGerminal source (git tag v1.1.1)
     # -----------------------------------------------------------------------
     # The staging path is /opt and NOT /tmp. Apptainer mounts the host /tmp over
     # the container's /tmp while %post runs, which hides anything %files put
@@ -290,7 +290,7 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     rm -rf /opt/germinal_src
 
 %files
-    # v1.1.0 source tree only. params_from_sif.tar is deliberately NOT
+    # v1.1.1 source tree only. params_from_sif.tar is deliberately NOT
     # included — AF-Multimer parameters are supplied at runtime (see %help).
     #
     # Staged under /opt, not /tmp: the host /tmp is mounted over the container's
@@ -303,7 +303,7 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
     exec python /workspace/run_germinal.py "$@"
 
 %help
-    OpenGerminal v1.1.0 — PyRosetta-free Germinal antibody design pipeline.
+    OpenGerminal v1.1.1 — PyRosetta-free Germinal antibody design pipeline.
 
     WHAT THIS IMAGE DOES NOT CONTAIN
         PyRosetta            replaced by OpenMM + FASPR + FreeSASA + Biopython + sc-rs
@@ -341,7 +341,7 @@ From: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
           --bind $PARAMS:/workspace/params \
           --bind $PDBS:/workspace/pdbs \
           --bind $RESULTS:/workspace/results \
-          opengerminal_v1.1.0.sif \
+          opengerminal_v1.1.1.sif \
           python run_germinal.py run=vhh_pdl1 target=pdl1 experiment_name=exp1
 
     KNOWN APPROXIMATIONS
