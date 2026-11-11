@@ -1,0 +1,30 @@
+Dunbrack 2010 backbone-dependent rotamer library
+================================================
+
+`germinal/filters/dun2010bbdep.bin` (13,763,520 bytes) is the Dunbrack 2010
+backbone-dependent rotamer library. FASPR reads it, requires it to sit beside
+the executable, and hard-codes the filename, so it travels with the binary.
+
+How it reached this repository
+------------------------------
+FASPR repository -> FreeBindCraft `functions/` -> `germinal/filters/`. The
+search order in our own code still names `functions/FASPR`, a directory that
+does not exist in this tree, which is the direct trace of that lineage.
+
+Terms: two official statements that disagree
+--------------------------------------------
+  * The Dunbrack lab download page states the 2010 library is "available only
+    after you have applied for a 2010 library license and approved".
+  * Other sources describe the 2010 library as CC BY.
+
+Both statements are second-hand to us, and we have not established which one
+governs the copy in this repository. Whether our copy arrived through the FASPR
+repository (which ships it) or directly from the lab is likewise unsettled; a
+sha256 comparison against FASPR's copy would settle it and has not been done.
+
+Why this notice exists anyway
+-----------------------------
+Attribution is required under the CC BY reading and harmless under the other,
+so it is given rather than adjudicated. We acknowledge the Dunbrack laboratory
+as the source of this rotamer library. Anyone redistributing OpenGerminal
+should keep this notice with the file.

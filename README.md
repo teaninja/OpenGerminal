@@ -27,11 +27,11 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 
 | Component | Original Germinal | OpenGerminal | License |
 |---|---|---|---|
-| Antibody LM (gradient) | IgLM v0.1.0 | AbLang1-heavy v0.3.1 (ablang2 v0.2.1) *(updated by Germinal team, commit 1e1c1a5; adopted in OpenGerminal as default)* | Apache 2.0 |
-| Structure relaxation | PyRosetta FastRelax | OpenMM + FASPR | MIT / Apache 2.0 |
-| SASA calculation | PyRosetta | FreeSASA | LGPL |
+| Antibody LM (gradient) | IgLM v0.1.0 | AbLang1-heavy weights loaded through ablang2 v0.2.1 *(updated by Germinal team, commit 1e1c1a5; adopted in OpenGerminal as default)* | BSD 3-clause (package); weights: not stated by the distributor |
+| Structure relaxation | PyRosetta FastRelax | OpenMM + FASPR | MIT (FASPR; OpenMM API, Reference and CPU platforms), LGPL-3.0 (OpenMM CUDA and OpenCL platforms) |
+| SASA calculation | PyRosetta | FreeSASA 2.2.1 | MIT |
 | Shape complementarity | PyRosetta | sc-rs | MIT |
-| Interface geometry | PyRosetta | Biopython | MIT |
+| Interface geometry | PyRosetta | Biopython 1.88 | Biopython License Agreement (BSD-like) |
 | Gradient-based design | AF-Multimer | AF-Multimer | CC BY 4.0 |
 | Initial & final cofolding filter | Chai-1 v0.6.1 (1 model) | Chai-1 v0.6.1 (1 model) | Apache 2.0 |
 | Sequence redesign | AbMPNN | AbMPNN | MIT |
@@ -198,12 +198,13 @@ The open-source components introduced in this work are distributed under the fol
 
 | Component | License |
 |---|---|
-| OpenMM 8.5.1 | MIT License |
-| FASPR | Apache 2.0 License |
-| FreeSASA | LGPL v2.1 |
+| OpenMM 8.6.0 | MIT (API, Reference and CPU platforms); LGPL-3.0 (CUDA and OpenCL platforms). The released default is the CPU platform; see `licenses/Licenses.txt` inside the image |
+| FASPR | MIT License (upstream `LICENSE` file; the upstream README states Apache 2.0 and the two disagree — the LICENSE file is taken as governing, and both readings permit commercial use) |
+| FreeSASA 2.2.1 | MIT License (FreeSASA relicensed from LGPL to MIT at version 2.0, so the LGPL figure described a version we do not ship) |
 | sc-rs v1.0.0 | MIT License |
-| Biopython | Biopython License Agreement (BSD-like) |
-| ablang2 v0.2.1 | Apache 2.0 License |
+| Biopython 1.88 | Biopython License Agreement (BSD-like) |
+| mdtraj 1.10.3 | LGPL-2.1-or-later. Imported by `germinal/filters/pDockQ.py`. Installed as an ordinary conda package and therefore replaceable, which is what the LGPL asks for; its notice is retained and the binary is unmodified |
+| ablang2 v0.2.1 | BSD 3-clause |
 
 ### Patent disclaimer
 
@@ -264,3 +265,5 @@ Department of Molecular Physiology and Biological Physics, University of Virgini
 ## Acknowledgments
 
 OpenGerminal is built on the work of the Germinal team (Santiago Mille-Fragoso et al.) and draws on the PyRosetta-free approach pioneered by FreeBindCraft (Aaron Ring, Ariax Bio). We thank both teams for making their work open source.
+
+OpenGerminal also redistributes three third-party binaries in `germinal/filters/`: FASPR (Xiaoqiang Huang, MIT), sc-rs (MIT), and the Dunbrack 2010 backbone-dependent rotamer library, which FASPR requires beside its executable. We acknowledge the Dunbrack laboratory as the source of that library. The terms for all three are in `germinal/filters/LICENSES/`.
