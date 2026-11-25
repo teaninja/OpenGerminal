@@ -1,3 +1,8 @@
+# Provenance, recorded in OpenGerminal v1.1.2:
+# this file is byte-identical to functions/logging_utils.py in FreeBindCraft
+# (https://github.com/cytokineking/FreeBindCraft), used under the MIT License.
+# The licence text is in germinal/filters/LICENSES/BindCraft-FreeBindCraft.LICENSE.
+
 """
 Thin helper to route verbose prints through Python's standard logging.
 

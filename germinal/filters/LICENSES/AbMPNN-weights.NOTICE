@@ -1,0 +1,45 @@
+AbMPNN model weights
+====================
+
+Attribution required by the licence under which these weights are distributed.
+
+Work      Inverse folding for antibody sequence design using deep learning
+          (model weights of the AbMPNN model, presented at the 2023 ICML
+          Workshop on Computational Biology; the paper is arXiv:2310.19513)
+Authors   Frederic A. Dreyer, Daniel Cutting, Constantin Schneider,
+          Henry Kenlay, Charlotte M. Deane
+Source    Zenodo, published 2023-07-19
+          version DOI  10.5281/zenodo.8164693
+          concept DOI  10.5281/zenodo.8164692
+Licence   Creative Commons Attribution 4.0 International (CC BY 4.0)
+          https://creativecommons.org/licenses/by/4.0/
+
+Changes made
+------------
+The file distributed here is
+
+    colabdesign/colabdesign/mpnn/weights_abmpnn/abmpnn.pkl
+
+which is a format conversion of the published checkpoint. The published file is
+`abmpnn.pt` (PyTorch, md5 911df5d74f2955373286c3bb3df69409, 20.0 MB); the copy
+here holds the same parameters in the JAX/pickle layout that ColabDesign loads,
+produced by the conversion notebook shipped alongside it at
+`colabdesign/mpnn/convert_weights/convert.ipynb`. CC BY 4.0 requires that
+changes be indicated, and a format conversion is a change, so it is stated here
+rather than left to be inferred from the file extension.
+
+How these weights reached this repository
+-----------------------------------------
+Upstream ColabDesign (https://github.com/sokrypton/ColabDesign) ships
+`colabdesign/mpnn/weights` and `colabdesign/mpnn/weights_soluble`, whose git
+tree hashes are identical to the copies here (68abaf5a… and f9f9194d…), and
+those hold the ProteinMPNN weights. It does **not** ship a `weights_abmpnn`
+directory. That directory was added in the Germinal fork of ColabDesign, from
+which this tree descends, and it arrives here with it. ColabDesign's own licence
+(`colabdesign/LICENSE.txt`, Beer-Ware revision 42) covers ColabDesign's content
+and so does not extend to a file placed into that tree by someone else, which is
+why this notice exists separately.
+
+AbMPNN is a fine-tune of ProteinMPNN (https://github.com/dauparas/ProteinMPNN);
+the ProteinMPNN weights in the two sibling directories are covered by that
+project's own terms and are unmodified here.

@@ -7,7 +7,7 @@
 
 **A PyRosetta-free implementation of the [Germinal](https://github.com/SantiagoMille/germinal) antibody design pipeline (VHH nanobodies and scFv).**
 
-OpenGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without software licensing barriers. The Germinal team added AbLang1 as a non-default alternative language model option in commit `1e1c1a5` (PR #55), but IgLM remained the default and no comparative data were reported; OpenGerminal adopts AbLang1 as the sole language model for all VHH configurations, removing IgLM entirely.
+OpenGerminal replaces PyRosetta — the primary commercial dependency in Germinal — with fully open-source alternatives, enabling the pipeline to be used in academic and commercial settings without software licensing barriers. Upstream Germinal had made AbLang available as a non-default alternative language model before the commit this work forked from, but IgLM remained the default and no comparative data were reported; OpenGerminal adopts AbLang1 as the sole language model for all VHH configurations, removing IgLM entirely. The fork point is commit `1e1c1a5` (24 April 2026, PR #60), which already contained that optional support.
 
 > ⚠️ **Patent notice:** The Germinal methodology is subject to a provisional patent
 > application filed by Stanford University and Arc Institute
@@ -27,7 +27,7 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 
 | Component | Original Germinal | OpenGerminal | License |
 |---|---|---|---|
-| Antibody LM (gradient) | IgLM v0.1.0 | AbLang1-heavy weights loaded through ablang2 v0.2.1 *(updated by Germinal team, commit 1e1c1a5; adopted in OpenGerminal as default)* | BSD 3-clause (package); weights: not stated by the distributor |
+| Antibody LM (gradient) | IgLM v0.1.0 | AbLang1-heavy weights loaded through ablang2 v0.2.1 *(available upstream at the fork point; adopted in OpenGerminal as the only option)* | BSD 3-clause (package); weights: not stated by the distributor |
 | Structure relaxation | PyRosetta FastRelax | OpenMM + FASPR | MIT (FASPR; OpenMM API, Reference and CPU platforms), LGPL-3.0 (OpenMM CUDA and OpenCL platforms) |
 | SASA calculation | PyRosetta | FreeSASA 2.2.1 | MIT |
 | Shape complementarity | PyRosetta | sc-rs | MIT |
@@ -36,9 +36,11 @@ OpenGerminal replaces PyRosetta — the primary commercial dependency in Germina
 | Initial & final cofolding filter | Chai-1 v0.6.1 (1 model) | Chai-1 v0.6.1 (1 model) | Apache 2.0 |
 | Sequence redesign | AbMPNN | AbMPNN | MIT |
 
-> **Note:** AbLang1 was added to Germinal as a non-default alternative language model by the Germinal team (commit `1e1c1a5`, PR #55/#64/#68); IgLM remained the default and no comparative benchmarking was reported. OpenGerminal adopts AbLang1 as the sole language model, removing IgLM as a selectable option, and provides the first systematic benchmarking of the two models within this architecture.
+> **Note:** AbLang was already available in Germinal as a non-default alternative language model at this work's fork point; IgLM remained the default and no comparative benchmarking was reported. OpenGerminal adopts AbLang1 as the sole language model, removing IgLM as a selectable option, and provides the first systematic benchmarking of the two models within this architecture.
 
-> **Known approximations (inherited from [FreeBindCraft](https://github.com/cytokineking/FreeBindCraft)):** `binder_score`, `interface_dG`, and `interface_hbonds` use fixed pass-through values, as these metrics depend on the Rosetta force field and have no open-source equivalent. `binder_score` and `interface_dG` are recorded for reference only and are not applied as filter thresholds; `interface_hbonds` is used as a Stage 4 filter threshold, but the fixed value always passes it, effectively disabling this filter. `binder_score` is also used by the Stage 2 ensemble-selection logic, which is degraded as a result (all candidates appear identical, so the first is always selected rather than the energetically optimal one); practical impact is expected to be limited.
+> **Known approximations (inherited from [FreeBindCraft](https://github.com/cytokineking/FreeBindCraft)):** eight interface quantities depend on the Rosetta force field, have no open-source equivalent, and carry fixed values: `binder_score` (-1.0), `interface_dG` (-10.0), `interface_dG_SASA_ratio` (0.0), `interface_hbonds` (5), `interface_hbond_percentage` (60.0), `interface_delta_unsat_hbonds` (1), `interface_delta_unsat_hbonds_percentage` (0.0) and `interface_packstat` (0.65). All eight are inherited verbatim from FreeBindCraft's `functions/pr_alternative_utils.py`, values and stated rationale unchanged; none was introduced by this work. Of the eight, only `interface_hbonds` is applied as a filter threshold, a Stage 4 gate that the fixed value always passes, effectively disabling it; the other seven are recorded for reference only. `binder_score` is also used by the Stage 2 ensemble-selection logic, which is degraded as a result (all candidates appear identical, so the first is always selected rather than the energetically optimal one); practical impact is expected to be limited.
+>
+> **Two further placeholders come from Germinal rather than from FreeBindCraft**, and are present in every configuration because every configuration co-folds with Chai-1: `chain_ptm` and `chain_iptm` are set to the constant 1 in `germinal/filters/chai.py`. `chain_ptm` is written to the per-design record as a constant column; `chain_iptm` is set in the code but never written to the record. Neither is named by any filter, so no acceptance decision depends on either.
 
 ---
 
@@ -164,25 +166,26 @@ apptainer exec --nv \
 
 ## Benchmark
 
-Tested on NVIDIA A100 80GB against original Germinal (commit `88d7f85`).
+The v1.0.0 release reported a pass-rate comparison against a prebuilt image of
+upstream Germinal. **That comparison is superseded.** It crossed three
+differences at once, the scoring stack, the language model, and six months of
+upstream development, and the factorial design that separates them finds the
+difference in co-folding entry to follow the language model, with the two
+scoring stacks identical on that measure. The v1.0.0 figures are therefore not
+reproduced here.
 
-| Metric | Original Germinal | OpenGerminal v1.0.0 |
+The current benchmark is five targets by four arms. Its numbers, the methods,
+and the thresholds they were read against are in the accompanying paper and in
+the archived run records rather than in this file, so that one set of figures
+exists in one place and no copy here can fall behind it.
+
+What does not depend on a benchmark:
+
+| | Original Germinal | OpenGerminal |
 |---|---|---|
-| PD-L1 accepted designs (seeds) | 3 seeds / 274 trajectories (1.1%) | 9 seeds / 499 trajectories (1.8%) |
-| PD-L1 cofolding entry rate | 51 / 274 (18.6%) | 168 / 499 (33.7%) |
-| PD-L1 avg. time per trajectory (Stage 1) | 180 sec (3.0 min) | 258 sec (4.3 min) |
-| IL-3 accepted designs (seeds) | 0 / 376 trajectories (0%) | 0 / 729 trajectories (0%) |
-| IL-3 cofolding entry rate | 30 / 376 (8.0%) | 179 / 729 (24.6%) |
-| IL-3 avg. time per trajectory (Stage 1) | 156 sec (2.6 min) | 252 sec (4.2 min) |
-| PyRosetta required | ✅ Yes | ❌ No |
-| IgLM required | ✅ Yes | ❌ No |
-| Commercial use | ⚠️ License required | ✅ Free |
-
-> **For full methods, benchmark details, and analysis, see the accompanying paper (preprint coming soon).**
-
-> Per-trajectory runtime (Stage 1, hallucination only) is slower for OpenGerminal on both targets: 43% for PD-L1 (180s vs 258s) and 62% for IL-3 (156s vs 252s). Stage 1 does not invoke OpenMM relaxation — relaxation only occurs in Stages 2 and 4 (cofolding filters). Since Stage 1 uses the same AF-Multimer model in both versions (verified by identical checksums of the core model code), we attribute the slowdown to the AbLang1 gradient steps replacing IgLM, not the relaxation backend.
-
-> "Accepted designs (seeds)" counts only designs whose originating trajectory has a complete log record, matching the rate reported in the manuscript (Section 3.3). For PD-L1, the original Germinal pipeline produced 7 accepted seeds (16 PDB structures) in total — of which 3 are traceable to a logged trajectory; all 9 OpenGerminal accepted seeds are log-traceable. Design-quality metrics for all accepted designs (independent of log traceability) are evaluated in the accompanying paper.
+| PyRosetta required | yes | no |
+| IgLM required | yes | no |
+| Commercial use | a licence is required for PyRosetta and for IgLM | no component forbids it; see the licence table below |
 
 ---
 
@@ -217,10 +220,10 @@ requires a patent license from the relevant rights holders.**
 
 This repository builds upon:
 - [Germinal](https://github.com/SantiagoMille/germinal) (Apache 2.0) — Mille-Fragoso et al., 2025
-- [FreeBindCraft](https://github.com/cytokineking/FreeBindCraft) (Apache 2.0) — Ring, 2025
-- [AbLang2](https://github.com/oxpig/AbLang2) (Apache 2.0) — Oxford Protein Informatics Group
+- [FreeBindCraft](https://github.com/cytokineking/FreeBindCraft) (MIT) — Ring, 2025. The text shipped at `germinal/filters/LICENSES/BindCraft-FreeBindCraft.LICENSE` is FreeBindCraft's own, which is an unmodified copy of BindCraft's (© 2024 Martin Pacesa)
+- [AbLang2](https://github.com/oxpig/AbLang2) (BSD 3-clause) — Oxford Protein Informatics Group
 - [OpenMM](https://openmm.org) (MIT)
-- [FreeSASA](https://freesasa.github.io) (LGPL)
+- [FreeSASA](https://freesasa.github.io) (MIT; relicensed from LGPL at version 2.0, and the version shipped here is 2.2.1)
 
 ---
 
@@ -266,4 +269,6 @@ Department of Molecular Physiology and Biological Physics, University of Virgini
 
 OpenGerminal is built on the work of the Germinal team (Santiago Mille-Fragoso et al.) and draws on the PyRosetta-free approach pioneered by FreeBindCraft (Aaron Ring, Ariax Bio). We thank both teams for making their work open source.
 
-OpenGerminal also redistributes three third-party binaries in `germinal/filters/`: FASPR (Xiaoqiang Huang, MIT), sc-rs (MIT), and the Dunbrack 2010 backbone-dependent rotamer library, which FASPR requires beside its executable. We acknowledge the Dunbrack laboratory as the source of that library. The terms for all three are in `germinal/filters/LICENSES/`.
+OpenGerminal also redistributes seven third-party files in `germinal/filters/`, all from [FreeBindCraft](https://github.com/cytokineking/FreeBindCraft) under the MIT License: four Python modules (`pr_alternative_utils.py`, `biopython_utils.py`, `generic_utils.py` and `logging_utils.py`) and three binary or data files (`FASPR`, `sc` and `dun2010bbdep.bin`). `FASPR` and `sc` are built from projects of their own, whose terms are reproduced separately: FASPR (Xiaoqiang Huang, MIT) and sc-rs (MIT). The third is the Dunbrack 2010 backbone-dependent rotamer library, which FASPR requires beside its executable; we acknowledge the Dunbrack laboratory as its source. The terms for all seven are in `germinal/filters/LICENSES/`.
+
+The AbMPNN model weights redistributed at `colabdesign/colabdesign/mpnn/weights_abmpnn/abmpnn.pkl` are the work of Frederic A. Dreyer, Daniel Cutting, Constantin Schneider, Henry Kenlay and Charlotte M. Deane, published at [10.5281/zenodo.8164693](https://doi.org/10.5281/zenodo.8164693) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The file here is a format conversion of the published `abmpnn.pt` checkpoint; see `germinal/filters/LICENSES/AbMPNN-weights.NOTICE`.

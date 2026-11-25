@@ -1,3 +1,8 @@
+# Provenance, recorded in OpenGerminal v1.1.2:
+# this file is derived from functions/biopython_utils.py in FreeBindCraft
+# (https://github.com/cytokineking/FreeBindCraft), used under the MIT License.
+# The licence text is in germinal/filters/LICENSES/BindCraft-FreeBindCraft.LICENSE.
+
 ####################################
 ################ BioPython functions
 ####################################

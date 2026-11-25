@@ -1,3 +1,13 @@
+# Provenance, recorded in OpenGerminal v1.1.2:
+# this file is derived from functions/pr_alternative_utils.py in FreeBindCraft
+# (https://github.com/cytokineking/FreeBindCraft), used under the MIT License;
+# 1,482 of its 1,505 non-blank lines are unchanged. The licence text is in
+# germinal/filters/LICENSES/BindCraft-FreeBindCraft.LICENSE. Changed here:
+# multi-chain handling in the shape-complementarity call and in the
+# solvent-accessibility selection, a CPU default for the OpenMM platform, and
+# the removal of a failure path that copied the unrelaxed input to the relaxed
+# output.
+
 """
 Alternative implementations for PyRosetta functionality.
 

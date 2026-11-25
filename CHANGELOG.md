@@ -11,7 +11,70 @@ observed to have byte-identical sizes.
 
 ---
 
-## [1.1.1] — unreleased
+## [1.1.2] — 2026-11-25
+
+Documentation and bundled licence texts. **No file that is executed at run time
+differs from 1.1.1.** The four source modules listed below gain a provenance
+comment and nothing else: every line that changes in them begins with `#`. The
+three images the benchmark ran on predate 1.1.1, so no reported result is
+affected by this release or by the one before it.
+
+### Added
+
+- `germinal/filters/LICENSES/BindCraft-FreeBindCraft.LICENSE` — the MIT licence
+  under which seven files in `germinal/filters/` are redistributed. Version
+  1.1.1 shipped licence texts for the three binaries among them and named no
+  terms at all for the other four, which are Python modules:
+  `pr_alternative_utils.py`, `biopython_utils.py`, `generic_utils.py` and
+  `logging_utils.py`. The text is FreeBindCraft's own, which is in turn an
+  unmodified copy of BindCraft's (© 2024 Martin Pacesa).
+- `germinal/filters/LICENSES/AbMPNN-weights.NOTICE` — the attribution required
+  by CC BY 4.0 for the AbMPNN weights at
+  `colabdesign/colabdesign/mpnn/weights_abmpnn/abmpnn.pkl` (Dreyer, Cutting,
+  Schneider, Kenlay and Deane; 10.5281/zenodo.8164693). CC BY 4.0 also requires
+  that changes be indicated, and the file shipped here is a format conversion
+  of the published `abmpnn.pt`, so the notice states that. Upstream ColabDesign
+  ships the two sibling ProteinMPNN weight directories, whose git tree hashes
+  are identical to the copies here, but not this one; it arrived with the
+  Germinal fork, so ColabDesign's own licence does not extend to it.
+- A provenance comment at the head of each of those four modules, naming the
+  upstream file it corresponds to and whether it is byte-identical or derived.
+
+### Fixed
+
+- The README's "builds upon" list gave FreeBindCraft as Apache 2.0, AbLang2 as
+  Apache 2.0 and FreeSASA as LGPL, while the README's own component table two
+  sections above gave MIT, BSD 3-clause and MIT. The upstream LICENSE files
+  govern: FreeBindCraft is MIT, ablang2 is BSD 3-clause, and FreeSASA
+  relicensed from LGPL to MIT at version 2.0, so the LGPL figure described a
+  version this image does not ship.
+- The README named three fixed interface quantities where there are eight, and
+  did not record that all eight are inherited from FreeBindCraft verbatim,
+  values and stated rationale unchanged. The 1.1.1 entry below says the same
+  and is left as published; a released entry is not rewritten.
+- The README's acknowledgments named three redistributed third-party files
+  where there are seven, and did not acknowledge the AbMPNN weights.
+
+### Known limitations
+
+- `germinal/filters/chai.py` sets `chain_ptm` and `chain_iptm` to the constant
+  1. These are Germinal's placeholders rather than this project's, and they are
+  present in every configuration because every configuration co-folds with
+  Chai-1. `chain_ptm` is written to the per-design record as a constant column;
+  `chain_iptm` is set in the code but never written to the record. Neither is
+  named by any filter, so no acceptance decision depends on either. This was
+  not stated in 1.1.1.
+- The four carried forward from 1.1.1, unchanged and located to the line there:
+  the hard-coded `0.70` fallback in
+  `pr_alternative_utils._calculate_shape_complementarity`; `False` written for
+  an absent metric in `filter_utils.evaluate_filters`; the fixed interface
+  quantities, of which one is a gate; and the per-job rather than cumulative
+  scope of `max_trajectories`. The first two change behaviour and are scheduled
+  for 1.2.0.
+
+---
+
+## [1.1.1] — 2026-11-11
 
 Documentation, bundled licence texts and configurations. **No file that is
 executed at run time differs from 1.1.0.** The benchmark runs reported in the

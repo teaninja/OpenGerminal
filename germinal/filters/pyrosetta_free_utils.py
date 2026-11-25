@@ -23,7 +23,13 @@ Known approximations (inherited from FreeBindCraft strategy):
   These fixed values were validated empirically by FreeBindCraft on BindCraft targets.
   Re-calibrate filter thresholds using your own benchmark dataset after switching.
 
-License: Apache 2.0 (inherits from FreeBindCraft pr_alternative_utils.py)
+License: Apache 2.0, as for the rest of this repository. (An earlier header here
+# read "Apache 2.0 (inherits from FreeBindCraft pr_alternative_utils.py)".
+# FreeBindCraft is MIT, not Apache 2.0, and this module is original to
+# OpenGerminal rather than derived from it: its functions face Germinal's
+# API. The modules that are derived from FreeBindCraft are
+# pr_alternative_utils.py, biopython_utils.py, generic_utils.py and
+# logging_utils.py; see LICENSES/BindCraft-FreeBindCraft.LICENSE.)
 """
 
 import os
