@@ -1,0 +1,248 @@
+# opengerminal_v1.1.1_derived.def  -  RELEASE build, DERIVED from the benchmark image
+# ===========================================================================
+# This recipe does not build the image from a base image. It starts from the
+# image that produced the published benchmark and adds documentation, licence
+# texts and configurations on top.
+#
+#   parent image   opengerminal_v1.1.0_c24e157.sif
+#   parent sha256  225a7faea5c1187c26b00dc2245e704222c645d735a1c79e0bae2fb4fd07f2f7
+#   parent commit  c24e157
+#   parent recipe  containers/opengerminal_v1.1.0.def, in this same tree
+#
+# WHY DERIVE RATHER THAN REBUILD
+#   A from-scratch build re-resolves the Python dependency set. Measured on
+#   2026-11-25 against the parent, a rebuild moved five packages on the
+#   executed code path: filelock 3.32.3 -> 4.1.0, optax 0.2.8 -> 0.2.9,
+#   py3Dmol 2.5.5 -> 3.0.0, pip 26.2.1 -> 26.3, setuptools 84.0.0 -> 84.2.1.
+#   Two are major bumps and optax is the optimiser Stage 1 runs on. A user who
+#   reproduces and gets different numbers could not then tell a dependency
+#   difference from GPU nondeterminism.
+#
+#   Pinning the Python side would not close the gap: the parent's own labels
+#   record `nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04`, a mutable tag with
+#   no digest, so the OS layer can move under a perfect lockfile. Bootstrap:
+#   localimage pulls no base image at all, so OS, conda and pip are the
+#   benchmark's by construction.
+#
+# WHAT A DERIVED SIF IS, AND IS NOT
+#   An Apptainer SIF is a single flat squashfs, not a stack of layers. The
+#   parent's identity cannot be recovered from the product, so it is recorded
+#   here, in %labels, and asserted by the build job before this file is read.
+#
+# Build (the job verifies the parent's sha256 first, then hardlinks it into the
+# build directory under the name below, because From: resolves relative to cwd):
+#   apptainer build --fakeroot opengerminal_v1.1.1.sif <abs path to this file>
+#
+# Required in the build directory:
+#   opengerminal_v1.1.0_c24e157.sif   hardlink to the verified parent
+#   germinal_src/                     the v1.1.1 source tree (git tag v1.1.1)
+# ===========================================================================
+
+Bootstrap: localimage
+From: opengerminal_v1.1.0_c24e157.sif
+
+%labels
+    maintainer teaninja
+    version 1.1.1
+    description "OpenGerminal - PyRosetta-free Germinal pipeline (release build, derived)"
+    base_image nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+    derived_from_image sha256:225a7faea5c1187c26b00dc2245e704222c645d735a1c79e0bae2fb4fd07f2f7
+    derived_from_commit c24e157
+    contains_iglm false
+    contains_pyrosetta false
+    contains_af3_module false
+    contains_af2_parameters false
+    copyleft_components_present true
+    licence_account /workspace/germinal/filters/LICENSES/README.md
+
+%environment
+    export MAMBA_ROOT_PREFIX=/opt/conda
+    export MAMBA_NO_BANNER=1
+    export CONDA_ENV=germinal
+    export PATH=/opt/conda/envs/germinal/bin:${PATH}
+    export PYTHONUNBUFFERED=1
+    export MPLBACKEND=Agg
+    export HYDRA_FULL_ERROR=1
+    export PIP_NO_CACHE_DIR=1
+
+%post
+    export PATH=/opt/conda/envs/germinal/bin:${PATH}
+    export PYTHONUNBUFFERED=1
+    export MPLBACKEND=Agg
+    export HYDRA_FULL_ERROR=1
+
+    # -----------------------------------------------------------------------
+    # The parent must be the benchmark image and not something already derived
+    # from it. The absence of LICENSES/ is the marker: the parent predates it,
+    # and a derived image carries it, so deriving twice fails here rather than
+    # producing a second image that looks correct.
+    # -----------------------------------------------------------------------
+    test -f /workspace/run_germinal.py || { echo "FAIL: the parent is not an OpenGerminal image"; exit 1; }
+    test ! -d /workspace/germinal/filters/LICENSES || { echo "FAIL: the parent already carries germinal/filters/LICENSES, so it is not the benchmark image but something already derived from it"; exit 1; }
+
+    # -----------------------------------------------------------------------
+    # Staging. /opt and not /tmp: the host /tmp is mounted over the container's
+    # while %post runs, which hides anything %files put there. Checked rather
+    # than left to cp, because a silent staging failure is how a recipe ends up
+    # describing an image it did not produce.
+    # -----------------------------------------------------------------------
+    test -d /opt/germinal_src || { echo "FAIL: %files did not deliver /opt/germinal_src"; exit 1; }
+    test -f /opt/germinal_src/run_germinal.py || { echo "FAIL: /opt/germinal_src is not the source tree"; exit 1; }
+
+    # Overlay, not replace. The editable installs put .egg-info under the
+    # source directories and importlib.metadata reads it; wiping /workspace
+    # would take those with it and the SBOM would then see no packages. For the
+    # same reason the editable install is NOT re-run: it points at a directory,
+    # and overwriting files inside that directory does not disturb it.
+    cp -r /opt/germinal_src/. /workspace/
+
+    # Exactly four recipes, and nothing else. A file left over from the parent
+    # would otherwise travel into the image and be found by the whole-tree
+    # audit, which is a worse place to find it than here.
+    GOT=$(ls -1 /workspace/containers | sort | tr '\n' ' ')
+    WANT="germinal_ref_1e1c1a5.def opengerminal_v1.1.0.def opengerminal_v1.1.0_bench.def opengerminal_v1.1.1_derived.def "
+    test "$GOT" = "$WANT" || { echo "FAIL: containers/ holds [$GOT], expected [$WANT]"; exit 1; }
+
+    # -----------------------------------------------------------------------
+    # Release invariants. Re-run rather than inherited: they are the
+    # machine-checkable form of the claims the manuscript makes, and they are
+    # cheap, so they are asserted against the image actually being released.
+    # -----------------------------------------------------------------------
+    echo "=== verifying release invariants ==="
+
+    ! python -c "import iglm"     2>/dev/null || { echo "FAIL: iglm importable";     exit 1; }
+    ! python -c "import pyrosetta" 2>/dev/null || { echo "FAIL: pyrosetta importable"; exit 1; }
+    ! python -c "import cvxopt"   2>/dev/null || { echo "FAIL: cvxopt importable";   exit 1; }
+    ! python -c "import MDAnalysis" 2>/dev/null || { echo "FAIL: MDAnalysis importable"; exit 1; }
+    ! python -c "import colabfold" 2>/dev/null || { echo "FAIL: colabfold importable"; exit 1; }
+
+    test ! -e /workspace/germinal/filters/af3.py || { echo "FAIL: af3.py present"; exit 1; }
+    test ! -e /workspace/params/DAlphaBall.gcc   || { echo "FAIL: DAlphaBall present"; exit 1; }
+
+    python -c "import germinal.filters.filter_utils" || { echo "FAIL: filter_utils does not import without iglm"; exit 1; }
+    python -c "from colabdesign.af.prep import CustomIgLM; assert CustomIgLM is None" || { echo "FAIL: CustomIgLM is not None in the release image"; exit 1; }
+
+    python -c "import ablang2, chai_lab, openmm, freesasa, pdbfixer, mdtraj; print('imports OK')"
+
+    # A relax that actually runs, through the wrapper the pipeline calls. The
+    # assertions that let three broken builds through were `import iglm` and a
+    # grep of the source: both pass while the function is broken at run time.
+    # This one fails the build if no relaxed structure appears. It does not
+    # cover the CUDA platform: %post has no GPU, so that is the GPU-node smoke
+    # run's job and it is not optional.
+    python -c "import os; import germinal.filters.pr_alternative_utils as M; out='/opt/ogr1_relax_assert.pdb'; M.openmm_relax_subprocess(pdb_file_path='/workspace/pdbs/nb.pdb', output_pdb_path=out, max_attempts=1); assert os.path.isfile(out) and os.path.getsize(out) > 0; print('relax assertion OK, bytes', os.path.getsize(out))" || { echo "FAIL: openmm_relax_subprocess produced no relaxed structure"; exit 1; }
+    rm -f /opt/ogr1_relax_assert.pdb
+
+    echo "=== release invariants OK ==="
+
+    # -----------------------------------------------------------------------
+    # Attribution. Two assertions, because they answer different questions and
+    # either one alone leaves the other failure silent.
+    #   named       the seven files inherited from FreeBindCraft are present and
+    #               each is named by some text under LICENSES/. Catches a
+    #               licence text being deleted or renamed.
+    #   generative  every non-Python file here is either declared ours or named
+    #               by a text. Catches a new third-party binary arriving
+    #               undeclared, which is the failure that actually happened:
+    #               dun2010bbdep.bin, 13.7 MB, on no inventory until someone
+    #               listed the directory by hand. That hand action is what this
+    #               second loop replaces.
+    # -----------------------------------------------------------------------
+    echo "=== verifying attribution ==="
+    for t in BindCraft-FreeBindCraft.LICENSE AbMPNN-weights.NOTICE FASPR.LICENSE sc-rs.LICENSE dun2010bbdep.NOTICE README.md ; do test -s /workspace/germinal/filters/LICENSES/$t || { echo "FAIL: licence text missing or empty: LICENSES/$t"; exit 1; } ; done
+    for f in pr_alternative_utils.py logging_utils.py generic_utils.py biopython_utils.py FASPR sc dun2010bbdep.bin ; do test -e /workspace/germinal/filters/$f || { echo "FAIL: inherited file absent: germinal/filters/$f"; exit 1; } ; done
+    for f in pr_alternative_utils.py logging_utils.py generic_utils.py biopython_utils.py FASPR sc dun2010bbdep.bin ; do grep -qr -- "$f" /workspace/germinal/filters/LICENSES || { echo "FAIL: no licence text names germinal/filters/$f"; exit 1; } ; done
+    test -s /workspace/colabdesign/colabdesign/mpnn/weights_abmpnn/abmpnn.pkl || { echo "FAIL: AbMPNN weights absent although a notice for them ships"; exit 1; }
+    for f in $(ls -1 /workspace/germinal/filters | grep -v "\.py$" | grep -v "^LICENSES$" | grep -v "^__pycache__$") ; do case " chai.restraints " in *" $f "*) continue ;; esac ; grep -qr -- "$f" /workspace/germinal/filters/LICENSES || { echo "FAIL: undeclared non-Python file germinal/filters/$f is neither ours nor named by a licence text"; exit 1; } ; done
+    echo "attribution OK: 7 inherited file(s), 6 licence text(s)"
+
+    rm -rf /opt/germinal_src
+
+%files
+    # Source tree only. params_from_sif.tar is deliberately NOT included: the
+    # AlphaFold-Multimer parameters are supplied at runtime, which makes "we do
+    # not redistribute them" a property of the image rather than an accident.
+    # Staged under /opt, not /tmp, for the reason given in %post. The source
+    # path resolves against the directory the build is invoked from.
+    germinal_src /opt/germinal_src
+
+%runscript
+    exec python /workspace/run_germinal.py "$@"
+
+%help
+    OpenGerminal v1.1.1 - PyRosetta-free Germinal antibody design pipeline.
+
+    HOW THIS IMAGE WAS BUILT
+        It is derived from the image that produced the published benchmark,
+        not built again from a base image. Parent sha256 225a7fae..., itself
+        built from commit c24e157 by containers/opengerminal_v1.1.0.def, which
+        travels in this same source tree. Every installed package is the
+        benchmark's by construction. See the CHANGELOG for the measurement
+        that led to this.
+
+    WHAT THIS IMAGE DOES NOT CONTAIN
+        PyRosetta            replaced by OpenMM + FASPR + FreeSASA + Biopython + sc-rs
+        IgLM                 removed; the language model is AbLang
+        AlphaFold 3 module   removed (non-commercial terms)
+        cvxopt (GPL-3.0)     removed; gradient merging uses PCGrad
+        AlphaFold2 params    NOT bundled, supply at runtime, see below
+
+    LICENCES
+        Terms for every redistributed third-party file are under
+        /workspace/germinal/filters/LICENSES/, and LICENSES/README.md is the
+        index. Note that copyleft components are present: mdtraj (LGPL-2.1+)
+        is imported by filters/pDockQ.py, tqdm is MPL-2.0 AND MIT, OpenMM's
+        CUDA and OpenCL plugins are LGPL-3.0 while its CPU platform is MIT,
+        and tmtools (GPL-3.0) ships as a transitive dependency of Chai-1 and
+        is never imported. The authoritative account is the SBOM published
+        with this image, not these labels, which are coarse build flags.
+
+    ANTIBODY LANGUAGE MODEL
+        package        ablang2 v0.2.1
+        model (VHH)    ablang1-heavy
+        model (scFv)   ablang2-paired
+        weights        ablang-heavy.tar.gz -> amodel.pt
+                       sha256 ab0888f7dc5e89fbf10568a100f081eadf9386bd460d3cdf1d6731044a01266b
+        licence        BSD 3-Clause
+
+    REQUIRED RUNTIME BIND MOUNTS
+        AlphaFold-Multimer parameters are required by Stage 1 and are ~5.4 GB,
+        so they are not baked into the image:
+
+          --bind /path/to/af_params:/workspace/params
+
+        Obtain them once with:
+          aria2c -x 16 https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar
+        The parameters are CC BY 4.0.
+
+        Other mounts:
+          --bind /path/to/pdbs:/workspace/pdbs
+          --bind /path/to/results:/workspace/results
+          --bind /path/to/chai_cache:/opt/conda/envs/germinal/lib/python3.10/site-packages/downloads
+          --bind /path/to/ablang_weights:/opt/conda/envs/germinal/lib/python3.10/site-packages/ablang2/model-weights-ablang1-heavy
+
+    RELAXATION PLATFORM
+        use_gpu_relax defaults to false, which is the CPU platform and works on
+        any node; every published OpenGerminal dataset was produced with it.
+        Setting it true selects CUDA, which needs a driver able to load the PTX
+        built into this image. There is no automatic fall-back: that would
+        decide the platform of a run silently, and the platform is part of a
+        run's identity. Run tools/probe_cuda_platform.py on the node first.
+
+    EXAMPLE
+        apptainer exec --nv \
+          --bind $PARAMS:/workspace/params \
+          --bind $PDBS:/workspace/pdbs \
+          --bind $RESULTS:/workspace/results \
+          opengerminal_v1.1.1.sif \
+          python run_germinal.py run=vhh_pdl1 target=pdl1 experiment_name=exp1
+
+    KNOWN APPROXIMATIONS
+        Eight interface quantities are fixed constants inherited verbatim from
+        FreeBindCraft, values and rationale unchanged. Three are recorded in
+        the per-design table (binder_score -1.0, interface_dG -10.0,
+        interface_hbonds 5) and interface_hbonds is a Stage 4 gate with a
+        threshold of >= 3, so that gate can never fail. Two more
+        (chain_ptm 1.0, chain_iptm 1.0) come from upstream Germinal's Chai-1
+        integration and gate nothing. Filter thresholds were calibrated against
+        PyRosetta energies and SHOULD BE RECALIBRATED against your own data.

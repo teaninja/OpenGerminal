@@ -1,4 +1,4 @@
-# Provenance, recorded in OpenGerminal v1.1.2:
+# Provenance, recorded in OpenGerminal v1.1.1:
 # this file is derived from functions/pr_alternative_utils.py in FreeBindCraft
 # (https://github.com/cytokineking/FreeBindCraft), used under the MIT License;
 # 1,482 of its 1,505 non-blank lines are unchanged. The licence text is in

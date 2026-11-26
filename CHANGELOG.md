@@ -11,13 +11,27 @@ observed to have byte-identical sizes.
 
 ---
 
-## [1.1.2] — 2026-11-25
+## [1.1.1] — 2026-11-25
 
-Documentation and bundled licence texts. **No file that is executed at run time
-differs from 1.1.1.** The four source modules listed below gain a provenance
-comment and nothing else: every line that changes in them begins with `#`. The
-three images the benchmark ran on predate 1.1.1, so no reported result is
-affected by this release or by the one before it.
+Documentation, bundled licence texts and configurations. **No executable
+statement differs from 1.1.0.** The five source modules listed below gain a
+provenance comment or a corrected licence line and nothing else; the
+configuration files added here are byte-identical to the copies the benchmark
+runs bound.
+
+This image is **derived from the image that produced the published benchmark**
+rather than built again from the base image: `Bootstrap: localimage`, parent
+sha256 `225a7fae...`, itself built from commit `c24e157`. A rebuild re-resolves
+the Python dependency set. Measured against that parent, a from-scratch build on
+2026-11-25 moved five packages on the executed code path (filelock 3.32.3 ->
+4.1.0, optax 0.2.8 -> 0.2.9, py3Dmol 2.5.5 -> 3.0.0, pip 26.2.1 -> 26.3,
+setuptools 84.0.0 -> 84.2.1). Pinning the Python side would not have closed the
+gap, because the base image is pulled by a mutable tag. Deriving makes the
+released image's dependency set the benchmark's by construction rather than by
+measurement.
+
+The three images the benchmark ran on are unaffected by this release and by the
+one before it.
 
 ### Added
 
@@ -39,6 +53,20 @@ affected by this release or by the one before it.
   Germinal fork, so ColabDesign's own licence does not extend to it.
 - A provenance comment at the head of each of those four modules, naming the
   upstream file it corresponds to and whether it is byte-identical or derived.
+- `germinal/filters/LICENSES/` — the upstream licence texts for the three
+  binaries this image redistributes:
+  - `FASPR.LICENSE` (MIT, (c) 2020 Xiaoqiang Huang)
+  - `sc-rs.LICENSE` (MIT, (c) 2025)
+  - `dun2010bbdep.NOTICE` — the provenance of the Dunbrack 2010
+    backbone-dependent rotamer library (`germinal/filters/dun2010bbdep.bin`,
+    13.7 MB), together with a statement that the two upstream sources for its
+    terms disagree. Attribution is given because it is required under one
+    reading and harmless under the other.
+- Acknowledgment of FASPR, sc-rs and the Dunbrack laboratory in the README.
+- `configs/target/` and `configs/run/` and `configs/filter/{initial,final}/`
+  entries for all five benchmarked targets. Version 1.1.0 shipped
+  configurations for PD-L1 and IL-3 only; the configurations for insulin,
+  EHD2 and caveolin-1 existed only inside the run directories of the benchmark.
 
 ### Fixed
 
@@ -50,10 +78,19 @@ affected by this release or by the one before it.
   version this image does not ship.
 - The README named three fixed interface quantities where there are eight, and
   did not record that all eight are inherited from FreeBindCraft verbatim,
-  values and stated rationale unchanged. The 1.1.1 entry below says the same
-  and is left as published; a released entry is not rewritten.
+  values and stated rationale unchanged.
 - The README's acknowledgments named three redistributed third-party files
   where there are seven, and did not acknowledge the AbMPNN weights.
+- The README stated that FASPR is distributed under Apache 2.0. The upstream
+  LICENSE file states MIT, and the upstream README states Apache 2.0; the two
+  disagree. The LICENSE file is taken as governing, and both readings permit
+  commercial use. The README now records both and names the governing one.
+- The shipped final filter sets for PD-L1 and IL-3 carried two gates,
+  `ipsae` and `pdockq2`, on metrics this pipeline never computes. A third party
+  running the shipped defaults would have seen every design rejected. Both
+  gates are removed. No threshold was changed: the shipped files are now
+  byte-identical to the gate sets the benchmark runs actually used, which were
+  derived from the shipped files by deleting whole blocks only.
 
 ### Known limitations
 
@@ -73,47 +110,6 @@ affected by this release or by the one before it.
   for 1.2.0.
 
 ---
-
-## [1.1.1] — 2026-11-11
-
-Documentation, bundled licence texts and configurations. **No file that is
-executed at run time differs from 1.1.0.** The benchmark runs reported in the
-accompanying manuscript bound their own copies of the filter configurations and
-archived them next to their data; those copies are byte-identical to the files
-added here, so the results are unaffected by this release.
-
-### Added
-
-- `germinal/filters/LICENSES/` — the upstream licence texts for the three
-  binaries this image redistributes:
-  - `FASPR.LICENSE` (MIT, (c) 2020 Xiaoqiang Huang)
-  - `sc-rs.LICENSE` (MIT, (c) 2025)
-  - `dun2010bbdep.NOTICE` — the provenance of the Dunbrack 2010
-    backbone-dependent rotamer library (`germinal/filters/dun2010bbdep.bin`,
-    13.7 MB), together with a statement that the two upstream sources for its
-    terms disagree. Attribution is given because it is required under one
-    reading and harmless under the other.
-- Acknowledgment of FASPR, sc-rs and the Dunbrack laboratory in the README.
-- `configs/target/` and `configs/run/` and `configs/filter/{initial,final}/`
-  entries for all five benchmarked targets. Version 1.1.0 shipped
-  configurations for PD-L1 and IL-3 only; the configurations for insulin,
-  EHD2 and caveolin-1 existed only inside the run directories of the benchmark.
-
-### Fixed
-
-- The README stated that FASPR is distributed under Apache 2.0. The upstream
-  LICENSE file states MIT, and the upstream README states Apache 2.0; the two
-  disagree. The LICENSE file is taken as governing, and both readings permit
-  commercial use. The README now records both and names the governing one.
-- The shipped final filter sets for PD-L1 and IL-3 carried two gates,
-  `ipsae` and `pdockq2`, on metrics this pipeline never computes. A third party
-  running the shipped defaults would have seen every design rejected. Both
-  gates are removed. No threshold was changed: the shipped files are now
-  byte-identical to the gate sets the benchmark runs actually used, which were
-  derived from the shipped files by deleting whole blocks only.
-
-### Known limitations
-
 These change behaviour at run time and are therefore deliberately **not**
 addressed in this release, which would otherwise no longer be a
 documentation-only change. They are located to the line and scheduled for
@@ -145,6 +141,8 @@ documentation-only change. They are located to the line and scheduled for
   `max_hallucinated_trajectories` counts **rows** of
   `all_trajectories.csv`, not trajectories; with `max_mpnn_sequences > 1`
   a trajectory contributes several rows.
+
+---
 
 ---
 

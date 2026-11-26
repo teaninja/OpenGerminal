@@ -105,7 +105,7 @@ recycle_mode: "last"
 # There is no "auto" on purpose: an automatic fall-back would decide the
 # platform of a run silently, and the platform is part of that run's identity.
 # If CUDA is asked for and cannot load, the job stops with a pointer.
-# Added in v1.1.2. Without the key present, a `use_gpu_relax=true` override is
+# Added in v1.1.1. Without the key present, a `use_gpu_relax=true` override is
 # rejected in Hydra's struct mode; `false` is what the code already did when the
 # key was absent, so the effective behaviour of this configuration is unchanged.
 # The sibling configurations also carry multi_relax, n_relax and
